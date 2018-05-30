@@ -1,0 +1,2 @@
+# jsbtc
+JavaScript Bitcoin library
