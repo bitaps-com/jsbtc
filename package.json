@@ -1,0 +1,22 @@
+{
+  "name": "jsbtc",
+  "version": "1.0.0",
+  "description": "JavaScript Bitcoin library",
+  "main": "src/jsbtc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitaps-com/jsbtc.git"
+  },
+  "keywords": [
+    "bitcoin"
+  ],
+  "author": "Aleksey Karpov <admin@bitaps.com> (https://bitaps.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitaps-com/jsbtc/issues"
+  },
+  "homepage": "https://github.com/bitaps-com/jsbtc#readme"
+}
