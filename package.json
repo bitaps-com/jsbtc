@@ -1,5 +1,5 @@
 {
-  "name": "jsbtc",
+  "name": "jsbitcoin",
   "version": "1.0.0",
   "description": "JavaScript Bitcoin library",
   "main": "src/jsbtc.js",
