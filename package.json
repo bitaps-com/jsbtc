@@ -5,8 +5,10 @@
   "main": "src/jsbtc.js",
   "scripts": {
     "commit": "git-cz",
+    "check-coverage": "istanbul check-coverage --statements 50 --branches 50 --functions 50 --lines 50",
+    "report-coverage": "cat ./coverage/lcov.info | codecov",
     "test": "mocha src/test/jsbtc.test.js -w",
-    "test:single": "mocha src/test/jsbtc.test.js",
+    "test:single": "istanbul cover -x *.test.js _mocha -- -R spec src/test/jsbtc.test.js",
     "semantic-release": "semantic-release"
   },
   "repository": {
@@ -24,9 +26,11 @@
   "homepage": "https://github.com/bitaps-com/jsbtc#readme",
   "devDependencies": {
     "chai": "^4.2.0",
+    "codecov.io": "0.1.6",
     "commitizen": "4.0.3",
     "cz-conventional-changelog": "3.1.0",
     "ghooks": "2.0.4",
+    "istanbul": "0.4.5",
     "mocha": "^6.2.2",
     "semantic-release": "^17.0.2"
   },
@@ -41,7 +45,7 @@
   },
   "config": {
     "ghooks": {
-      "pre-commit": "npm run test:single"
+      "pre-commit": "npm run test:single && npm run check-coverage"
     }
   }
 }
