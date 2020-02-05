@@ -1,8 +1,15 @@
-var tools = require('./functions/tools.js');
+var tools = require('./tools.js');
 
-function sha256(message, options) {
+function sha256(message, named_args) {
     let K = [];
-// Compute constants
+    if (message.constructor === String) {
+        message = tools.hexToBytes(message);
+    }
+
+    if (named_args === undefined) named_args= {};
+    if (named_args.hex === undefined) named_args.hex = false;
+
+    // Compute constants
     !function () {
         function isPrime(n) {
             let sqrtN = Math.sqrt(n);
@@ -27,7 +34,7 @@ function sha256(message, options) {
         }
     }();
 
-// Reusable object
+    // Reusable object
     let W = [];
     let processBlock = function (H, M, offset) {
 // Working variables
@@ -87,9 +94,7 @@ function sha256(message, options) {
         }
         return bytes;
     };
-    if (message.constructor === String) {
-        message = tools.stringUTF8ToBytes(message);
-    }
+
     let H = [0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
         0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19];
     let m = bytesToWords(message);
@@ -100,13 +105,13 @@ function sha256(message, options) {
         processBlock(H, m, i);
     }
     let digestbytes = wordsToBytes(H);
-    return options && options.asBytes ? digestbytes :
-        options && options.asString ? tools.bytesToString(digestbytes) :
-            tools.bytesToHex(digestbytes)
+    return named_args.hex ? tools.bytesToHex(digestbytes): digestbytes;
 }
 
-function double_sha256(message, options) {
-    return sha256(sha256(message, {asBytes: true}), options)
+function double_sha256(message, named_args) {
+    if (named_args === undefined) named_args= {};
+    if (named_args.hex === undefined) named_args.hex = false;
+    return sha256(sha256(message, {hex: false}), named_args)
 }
 
 

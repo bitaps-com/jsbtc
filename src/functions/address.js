@@ -20,7 +20,7 @@ function is_address_valid(address, testnet) {
         let b = base58decode(address);
         if (b.length !== 25) return false;
         let checksum = b.slice(-4);
-        let verify_checksum = double_sha256(b.slice(0, b.length - 4), {asBytes: true}).slice(0, 4);
+        let verify_checksum = double_sha256(b.slice(0, b.length - 4), {hex: true}).slice(0, 4);
         if (checksum.toString() !== verify_checksum.toString()) return false;
         return true;
     }

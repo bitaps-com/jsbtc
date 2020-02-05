@@ -4,7 +4,7 @@
   "description": "JavaScript Bitcoin library",
   "main": "src/jsbtc.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha src/test/jsbtc.test.js -w"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,15 @@
   "bugs": {
     "url": "https://github.com/bitaps-com/jsbtc/issues"
   },
-  "homepage": "https://github.com/bitaps-com/jsbtc#readme"
+  "homepage": "https://github.com/bitaps-com/jsbtc#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2"
+  },
+  "dependencies": {
+    "bn.js": "5.1.1",
+    "elliptic": "6.5.2",
+    "global": "4.4.0",
+    "math-erf": "1.0.0"
+  }
 }

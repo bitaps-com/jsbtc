@@ -1,3 +1,4 @@
+var BN = require('bn.js');
 
 var int_base32_map = {};
 var base32_int_map = {};
@@ -13,6 +14,7 @@ for (let i = 0; i < base32charset_upcase.length; i++) {
     int_base32_map[base32charset_upcase[i]] = i;
 }
 
+var ECDSA_SEC256K1_ORDER = new BN('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 16);
 
 
 module.exports = {
@@ -33,5 +35,6 @@ module.exports = {
     MAINNET_SCRIPT_ADDRESS_BYTE_PREFIX: [5],
     TESTNET_SCRIPT_ADDRESS_BYTE_PREFIX: [196],
     MAINNET_SEGWIT_ADDRESS_BYTE_PREFIX: [3, 3, 0, 2, 3],
-    TESTNET_SEGWIT_ADDRESS_BYTE_PREFIX: [3, 3, 0, 20, 2]
+    TESTNET_SEGWIT_ADDRESS_BYTE_PREFIX: [3, 3, 0, 20, 2],
+    ECDSA_SEC256K1_ORDER: ECDSA_SEC256K1_ORDER
 };
