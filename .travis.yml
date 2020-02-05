@@ -6,9 +6,9 @@ cache:
 notifiations:
   email: false
 node_js:
-  - iojs
+  - "7"
 before_install:
-  - npm i -g npm@2.15.12
+  - "npm install -g npm@^2"
 before_script:
   - npm prune
 script:
