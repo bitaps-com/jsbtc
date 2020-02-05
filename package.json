@@ -1,14 +1,16 @@
 {
   "name": "jsbitcoin",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.1",
   "description": "JavaScript Bitcoin library",
   "main": "src/jsbtc.js",
   "scripts": {
-    "test": "mocha src/test/jsbtc.test.js -w"
+    "commit": "git-cz",
+    "test": "mocha src/test/jsbtc.test.js -w",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bitaps-com/jsbtc.git"
+    "url": "https://github.com/bitaps-com/jsbtc.git"
   },
   "keywords": [
     "bitcoin"
@@ -21,12 +23,18 @@
   "homepage": "https://github.com/bitaps-com/jsbtc#readme",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.2.2"
+    "commitizen": "4.0.3",
+    "cz-conventional-changelog": "3.1.0",
+    "mocha": "^6.2.2",
+    "semantic-release": "^17.0.2"
   },
   "dependencies": {
     "bn.js": "5.1.1",
     "elliptic": "6.5.2",
     "global": "4.4.0",
     "math-erf": "1.0.0"
+  },
+  "czConfig": {
+    "path": "node_modules/cz-conventional-changelog"
   }
 }
