@@ -15,9 +15,7 @@ services:
 
 before_install:
   - npm install -g npm@^2
-  #  - docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten:sdk-incoming-64bit bash
-  - echo "test travis"
-  - ls
+  - npm run build:secp256k1
 before_script:
   - npm prune
 script:

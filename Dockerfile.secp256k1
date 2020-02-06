@@ -1,0 +1,57 @@
+FROM trzeci/emscripten-slim@sha256:e3cd9edf81c5d9cd78d2edf034ce6fcb2dccb35f1f5451e8ce75e5210bbbf036
+MAINTAINER Aleksey Karpov <admin@bitaps.com>
+
+RUN apt-get update
+RUN apt-get install -y   autoconf libtool build-essential
+COPY secp256k1 /secp256k1
+WORKDIR /secp256k1
+
+RUN ./autogen.sh
+RUN emconfigure ./configure --enable-module-recovery CFLAGS="-O3"
+RUN emmake make FORMAT=wasm
+RUN mkdir -p out/secp256k1
+RUN emcc src/libsecp256k1_la-secp256k1.o \
+  -O3 \
+  -s WASM=1 \
+  -s BINARYEN_IGNORE_IMPLICIT_TRAPS=1 \
+  -s "BINARYEN_TRAP_MODE='clamp'" \
+  -s NO_FILESYSTEM=1 \
+  -s MODULARIZE=1 \
+  -s NO_EXIT_RUNTIME=1 \
+  -s "EXPORT_NAME='SECP256K1'" \
+  -s ALLOW_MEMORY_GROWTH=1 \
+  -s INVOKE_RUN=1 \
+  -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+  -s NO_DYNAMIC_EXECUTION=1 \
+  -s STRICT=1 \
+  -s LINKABLE=1 \
+  -s EXPORTED_RUNTIME_METHODS='["getValue"]' \
+  -s EXPORTED_FUNCTIONS='[ \
+  "_malloc", \
+  "_free", \
+  "_secp256k1_context_create", \
+  "_secp256k1_context_randomize", \
+  "_secp256k1_ec_seckey_verify", \
+  "_secp256k1_ec_privkey_tweak_add", \
+  "_secp256k1_ec_privkey_tweak_mul", \
+  "_secp256k1_ec_pubkey_create", \
+  "_secp256k1_ec_pubkey_parse", \
+  "_secp256k1_ec_pubkey_serialize", \
+  "_secp256k1_ec_pubkey_tweak_add", \
+  "_secp256k1_ec_pubkey_tweak_mul", \
+  "_secp256k1_ecdsa_recover", \
+  "_secp256k1_ecdsa_recoverable_signature_serialize_compact", \
+  "_secp256k1_ecdsa_recoverable_signature_parse_compact", \
+  "_secp256k1_ecdsa_sign", \
+  "_secp256k1_ecdsa_signature_malleate", \
+  "_secp256k1_ecdsa_signature_normalize", \
+  "_secp256k1_ecdsa_signature_parse_der", \
+  "_secp256k1_ecdsa_signature_parse_compact", \
+  "_secp256k1_ecdsa_signature_serialize_der", \
+  "_secp256k1_ecdsa_signature_serialize_compact", \
+  "_secp256k1_ecdsa_sign_recoverable", \
+  "_secp256k1_ecdsa_verify" \
+  ]' \
+  -o out/secp256k1/secp256k1.js
+
+CMD ["cp", "out/secp256k1/secp256k1.js", "/target/secp256k1.js"]

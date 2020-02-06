@@ -4,6 +4,7 @@
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
+    "build:secp256k1": "docker build -f ./Dockerfile.secp256k1 -t secp256k1-builder  . && docker run --rm --name secp256k1-builder -v $(pwd)/src:/target/ -it secp256k1-builder",
     "commit": "git-cz",
     "check-coverage": "nyc check-coverage --statements 1 --branches 1 --functions 1 --lines 1",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
