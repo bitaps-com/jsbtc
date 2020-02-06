@@ -47,13 +47,6 @@ describe('bip39_mnemonic functions tests', function() {
 
 });
 
-//
-// describe('test tests', function() {
-//    it('t>>>', function() {
-//        mnemonic.test();
-//    });
 
-//
-// });
 
 
