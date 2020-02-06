@@ -29,7 +29,7 @@ describe('Crypto functions tests', function() {
 
 describe('bip39_mnemonic functions tests', function() {
    it('igam and igamc math functions', function() {
-       q = 0.0000000000001;
+       let q = 0.0000000000001;
        assert.equal(mnemonic.igam(0.56133437, 7.79533309) - 0.99989958147838275959 < q, true);
        assert.equal(mnemonic.igam(3.80398274, 0.77658461) - 0.01162079725209424867 < q, true);
        assert.equal(mnemonic.igam(6.71146614, 0.39790492) - 0.00000051486912406477 < q, true);

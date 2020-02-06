@@ -1,19 +1,29 @@
-sudo: false
+sudo: required
 language: node_js
 cache:
   directories:
     - node_modules
+#branches:
+#  only:
+#    - master
 notifiations:
   email: false
 node_js:
-  - "10"
+  - 10
+services:
+  - docker
+
 before_install:
-  - "npm install -g npm@^2"
+  - npm install -g npm@^2
+  #  - docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten:sdk-incoming-64bit bash
+  - echo "test travis"
+  - ls
 before_script:
   - npm prune
 script:
   - npm run test:single
   - npm run check-coverage
+  - npm run build
 after_success:
   - npm run report-coverage
   - npm run semantic-release
