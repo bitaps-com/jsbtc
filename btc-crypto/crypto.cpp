@@ -1,68 +1,13 @@
 
+#include <emscripten.h>
+#include "sha256.h"
+#include "base58.h"
 
+extern "C" {
 
+    EMSCRIPTEN_KEEPALIVE
+    void crypto_sha256(const unsigned char* data, size_t len, unsigned char* out_data) {
+        CSHA256().Write(data, len).Finalize(out_data);
+    }
 
-
-
-
-
-int squarer(int num) {
-  return num * num;
 }
-
-
-
-
-
-
-
-
-
-
-//#include <stdint.h>
-//#include <emscripten.h>
-
-//extern "C" {
-//
-//    static uint64_t MapIntoRange(uint64_t x, uint64_t n);
-//}
-//EMSCRIPTEN_KEEPALIVE
-//int fib(int x) {
-//  if (x < 1)
-//    return 0;
-//  if (x == 1)
-//    return 1;
-//  return fib(x-1)+fib(x-2);
-//}
-
-// Map a value x that is uniformly distributed in the range [0, 2^64) to a
-// value uniformly distributed in [0, n) by returning the upper 64 bits of
-// x * n.
-//
-// See: https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
-//EMSCRIPTEN_KEEPALIVE static uint64_t MapIntoRange(uint64_t x, uint64_t n)
-//{
-//#ifdef __SIZEOF_INT128__
-//    return (static_cast<unsigned __int128>(x) * static_cast<unsigned __int128>(n)) >> 64;
-//#else
-//    // To perform the calculation on 64-bit numbers without losing the
-//    // result to overflow, split the numbers into the most significant and
-//    // least significant 32 bits and perform multiplication piece-wise.
-//    //
-//    // See: https://stackoverflow.com/a/26855440
-//    uint64_t x_hi = x >> 32;
-//    uint64_t x_lo = x & 0xFFFFFFFF;
-//    uint64_t n_hi = n >> 32;
-//    uint64_t n_lo = n & 0xFFFFFFFF;
-//
-//    uint64_t ac = x_hi * n_hi;
-//    uint64_t ad = x_hi * n_lo;
-//    uint64_t bc = x_lo * n_hi;
-//    uint64_t bd = x_lo * n_lo;
-//
-//    uint64_t mid34 = (bd >> 32) + (bc & 0xFFFFFFFF) + (ad & 0xFFFFFFFF);
-//    uint64_t upper64 = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
-//    return upper64;
-//#endif
-//}
-

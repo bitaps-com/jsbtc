@@ -15,7 +15,7 @@ services:
 
 before_install:
   - npm install -g npm@^2
-  - npm run build:secp256k1
+  - npm run build:wasm
 before_script:
   - npm prune
 script:

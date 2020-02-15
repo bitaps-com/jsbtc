@@ -14,8 +14,7 @@
 #ifndef BITCOIN_BASE58_H
 #define BITCOIN_BASE58_H
 
-#include <string>
-#include <vector>
+
 
 /**
  * Encode a byte sequence as a base58-encoded string.

@@ -2,7 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <siphash.h>
+#include "siphash.h"
+#include <emscripten.h>
 
 #define ROTL(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 
@@ -171,3 +172,22 @@ uint64_t SipHashUint256Extra(uint64_t k0, uint64_t k1, const uint256& val, uint3
     SIPROUND;
     return v0 ^ v1 ^ v2 ^ v3;
 }
+
+extern "C" {
+
+    EMSCRIPTEN_KEEPALIVE
+    void siphash(const unsigned char* k0,const unsigned char* k1,
+                 const unsigned char* data, size_t len, unsigned char* out_data) {
+    int64_t v0;
+    int64_t v1;
+    std::memcpy(&v0, k0, sizeof v0);
+    std::memcpy(&v1, k1, sizeof v1);
+    int64_t x = CSipHasher(v0, v1).Write(data, len).Finalize();
+    std::memcpy(out_data,&x,sizeof(x));
+
+    }
+
+
+}
+
+

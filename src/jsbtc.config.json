@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "address": {"include":"true",
+                "requirements": ["encode", "hash"]},
+    "encode": {"include":"true",
+                "requirements": ["encode", "hash"]}
+  }
+}

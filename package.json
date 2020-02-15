@@ -4,22 +4,24 @@
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
-    "build:secp256k1": "docker build -f ./Dockerfile.secp256k1 -t secp256k1-builder  . && docker run --rm --name secp256k1-builder -v $(pwd)/src:/target/ -it secp256k1-builder",
+    "build:wasm:prebuild": "docker  build  -f ./Dockerfile -t wasm-builder .",
+    "build:wasm:pre": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
+    "build:wasm": "docker run --rm --name wasm-builder -v $(pwd)/:/jsbtc/ -it wasm-builder /jsbtc/build.wasm.sh",
     "commit": "git-cz",
     "check-coverage": "nyc check-coverage --statements 1 --branches 1 --functions 1 --lines 1",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "watch:test": "npm t -- -w",
-    "test": "mocha src/test/jsbtc.test.js --require babel-core/register",
+    "test": "mocha test/jsbtc.test.js --require @babel/register ",
+    "test:2": "mocha test/jsbtc.test.js  ",
     "cover": "nyc npm t",
     "prebuild": "rimraf dist",
-    "build": "babel --copy-files --out-dir dist --ignore *.test.js src",
-    "build:umd": "webpack --output-filename jsbtc.umd.js --mode development",
-    "build:umd.min": "webpack --output-filename jsbtc.umd.min.js --mode production",
+    "build": "npm run prebuild;babel --copy-files -d dist --ignore *.test.js src",
+    "build:web": "npm run prebuild;webpack --output-filename jsbtc.web.min.js ",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bitaps-com/jsbtc.git"
+    "url": "git+https://github.com/bitaps-com/jsbtc.git"
   },
   "keywords": [
     "bitcoin"
@@ -35,32 +37,29 @@
   },
   "homepage": "https://github.com/bitaps-com/jsbtc#readme",
   "devDependencies": {
+    "@babel/cli": "7.8.4",
     "@babel/core": "7.8.4",
+    "@babel/plugin-transform-runtime": "7.8.3",
     "@babel/preset-env": "7.8.4",
-    "@babel/preset-react": "7.8.3",
-    "babel-cli": "6.26.0",
-    "babel-core": "6.26.3",
-    "babel-loader": "8.0.6",
-    "babel-preset-es2015": "6.24.1",
-    "babel-preset-stage-2": "6.24.1",
-    "babel-register": "6.26.0",
+    "@babel/register": "7.8.3",
+    "@babel/runtime": "7.8.4",
     "chai": "^4.2.0",
+    "chai-as-promised": "7.1.1",
     "codecov.io": "0.1.6",
     "commitizen": "4.0.3",
     "cz-conventional-changelog": "3.1.0",
     "ghooks": "2.0.4",
     "istanbul": "0.4.5",
-    "json-loader": "0.5.7",
-    "mocha": "^6.2.2",
+    "mocha": "6.2.2",
     "nyc": "15.0.0",
     "rimraf": "3.0.1",
     "semantic-release": "^17.0.2",
-    "webpack": "4.41.5",
-    "webpack-cli": "3.3.10"
+    "webpack": "4.8.3",
+    "webpack-cli": "2.1.3",
+    "terser-webpack-plugin": "2.3.4"
   },
   "dependencies": {
     "bn.js": "5.1.1",
-    "elliptic": "6.5.2",
     "global": "4.4.0",
     "math-erf": "1.0.0"
   },
@@ -71,11 +70,5 @@
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog"
     }
-  },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-2"
-    ]
   }
 }

@@ -1,3 +1,22 @@
+const Buffer = require('buffer/').Buffer;
+const isBuffer = require('is-buffer');
+const BN = require('bn.js');
+const window = require('global/window');
+let nodeCrypto = false;
+try {
+    nodeCrypto = require('crypto');
+} catch (e) {
+
+}
+
+const BNZerro = new BN(0);
+
+let  isHex = s => Boolean(/^[0-9a-fA-F]+$/.test(s) && !(s.length % 2));
+
+function isString (value) {
+    return typeof value === 'string' || value instanceof String;
+}
+
 
 function bytesToHex(bytes) {
         return arrBytesToHex(bytes);
@@ -51,11 +70,16 @@ function intToBytes(x, n) {
     }
 
 module.exports = {
+    isHex,
+    Buffer,
+    isBuffer,
+    isString,
+    window,
+    BN,
+    BNZerro,
+    nodeCrypto,
     bytesToHex,
-    hexToBytes,
-    arrBytesToHex,
+    intToBytes,
     bytesToString,
-    bytesToStringUTF8,
-    stringUTF8ToBytes,
-    intToBytes
+    stringToBytes
 };

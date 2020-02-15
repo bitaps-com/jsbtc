@@ -1,11 +1,11 @@
+// Redisgned for WASM export by Karpov Aleksey
 // Copyright (c) 2014-2018 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <crypto/ripemd160.h>
-
-#include <crypto/common.h>
-
+#include "ripemd160.h"
+#include "common.h"
+#include <emscripten.h>
 #include <string.h>
 
 // Internal implementation code.
@@ -289,4 +289,14 @@ CRIPEMD160& CRIPEMD160::Reset()
     bytes = 0;
     ripemd160::Initialize(s);
     return *this;
+}
+
+extern "C" {
+
+    EMSCRIPTEN_KEEPALIVE
+    void _ripemd160(const unsigned char* data, size_t len, unsigned char* out_data) {
+        CRIPEMD160().Write(data, len).Finalize(out_data);
+    }
+
+
 }

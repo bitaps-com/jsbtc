@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <common.h>
+#include "common.h"
 
 /** Template base class for fixed-sized opaque blobs. */
 template<unsigned int BITS>
