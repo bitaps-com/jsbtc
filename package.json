@@ -4,7 +4,7 @@
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
-    "build:wasm:prebuild": "docker  build  -f ./Dockerfile -t wasm-builder .",
+    "build:wasm:prebuild": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
     "build:wasm:pre": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
     "build:wasm": "docker run --rm --name wasm-builder -v $(pwd)/:/jsbtc/ -it wasm-builder /jsbtc/build.wasm.sh",
     "commit": "git-cz",
