@@ -186,7 +186,7 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.isPublicKeyValid(pk), true);
             assert.equal(jsbtc.isPublicKeyValid(jsbtc.Buffer.from(pu, 'hex')), true);
             assert.equal(jsbtc.isPublicKeyValid(jsbtc.Buffer.from(pk, 'hex')), true);
-            pu = "04b635dbdc16dbdf4bb9cf45b55e7d03e514fb04dcef34208155c7d3ec88e9045f4c8cbe28702911260f2a1da099a338bed4ee98f66bb8dba8031a76ab537ff6663";
+            pu = "63qdbdc16dbdf4bb9cf45b55e7d03e514fb04dcef34208155c7d3ec88e9045f4c8cbe28702911260f2a1da099a338bed4ee98f66bb8dba8031a76ab537ff6663";
             pk = "02b635dbdc16dbdf455bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
             assert.equal(jsbtc.isPublicKeyValid(pu), false);
             assert.equal(jsbtc.isPublicKeyValid(pk), false);

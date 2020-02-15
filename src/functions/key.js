@@ -117,6 +117,7 @@ module.exports = function (constants, crypto, tools, mnemonic, encoders, hash,
             if ((key[0] === 4)&&(key.length !== 65)) return false;
             if ((key[0] === 2)||(key[0] === 3))
                 if (key.length !== 33) return false;
+            if ((key[0] < 2)||(key[0] > 4)) return false;
             return true;
         }
     }
