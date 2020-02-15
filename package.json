@@ -13,7 +13,7 @@
     "watch:test": "npm t -- -w",
     "test": "mocha test/jsbtc.test.js --require @babel/register ",
     "test:2": "mocha test/jsbtc.test.js  ",
-    "cover": "nyc npm t",
+    "cover": "npm t",
     "prebuild": "rimraf dist",
     "build": "npm run prebuild;babel --copy-files -d dist --ignore *.test.js src",
     "build:web": "npm run prebuild;webpack --output-filename jsbtc.web.min.js ",
