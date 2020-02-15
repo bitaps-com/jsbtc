@@ -15,6 +15,7 @@ services:
 
 before_install:
   - npm install -g npm@^2
+  - npm install -g @babel/core @babel/cli
   - npm run build:wasm:prebuild
   - npm run build:wasm
 before_script:
