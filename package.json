@@ -8,12 +8,12 @@
     "build:wasm:pre": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
     "build:wasm": "docker run --rm --name wasm-builder -v $(pwd)/:/jsbtc/ -it wasm-builder /jsbtc/build.wasm.sh",
     "commit": "git-cz",
-    "check-coverage": "nyc check-coverage --statements 1 --branches 1 --functions 1 --lines 1",
+    "check-coverage": "nyc check-coverage --statements 50 --branches 50 --functions 50 --lines 50",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "watch:test": "npm t -- -w",
     "test": "mocha test/jsbtc.test.js --require @babel/register ",
     "test:2": "mocha test/jsbtc.test.js  ",
-    "cover": "npm t",
+    "cover": "nyc npm t",
     "prebuild": "rimraf dist",
     "build": "npm run prebuild;babel --copy-files -d dist --ignore *.test.js src",
     "build:web": "npm run prebuild;webpack --output-filename jsbtc.web.min.js ",
@@ -60,8 +60,7 @@
   },
   "dependencies": {
     "bn.js": "5.1.1",
-    "global": "4.4.0",
-    "math-erf": "1.0.0"
+    "global": "4.4.0"
   },
   "config": {
     "ghooks": {
