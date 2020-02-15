@@ -8,7 +8,7 @@
     "build:wasm:pre": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
     "build:wasm": "docker run --rm --name wasm-builder -v $(pwd)/:/jsbtc/ -it wasm-builder /jsbtc/build.wasm.sh",
     "commit": "git-cz",
-    "check-coverage": "nyc check-coverage --statements 50 --branches 50 --functions 50 --lines 50",
+    "check-coverage": "nyc check-coverage --statements 50 --branches 50 --functions 30 --lines 50",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "watch:test": "npm t -- -w",
     "test": "mocha test/jsbtc.test.js --require @babel/register ",
