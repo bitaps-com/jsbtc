@@ -1,22 +1,23 @@
 var constants = require('../constants.js');
 
-
-function base58encode(B) {
-    let d = [], s = "";
-    let i, j, c, n;
-    for (i in B) {
-        j = 0, c = B[i];
-        s += c || s.length ^ i ? "" : 1;
-        while (j in d || c) {
-            n = d[j];
-            n = n ? n * 256 + c : c;
-            c = n / 58 | 0;
-            d[j] = n % 58;
-            j++
+{
+    base58encode: function(B) {
+        let d = [], s = "";
+        let i, j, c, n;
+        for (i in B) {
+            j = 0, c = B[i];
+            s += c || s.length ^ i ? "" : 1;
+            while (j in d || c) {
+                n = d[j];
+                n = n ? n * 256 + c : c;
+                c = n / 58 | 0;
+                d[j] = n % 58;
+                j++
+            }
         }
+        while (j--) s += constants.base58Alphabet[d[j]];
+        return s
     }
-    while (j--) s += constants.base58Alphabet[d[j]];
-    return s
 }
 
 function base58decode(S) {

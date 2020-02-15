@@ -9,7 +9,7 @@ WORKDIR /secp256k1
 RUN ./autogen.sh
 RUN emconfigure ./configure --enable-module-recovery CFLAGS="-O3"
 RUN emmake make FORMAT=wasm
-RUN mkdir -p out/secp256k1
+RUN mkdir -p /out
 RUN emcc src/libsecp256k1_la-secp256k1.o \
   -O3 \
   -s WASM=1 \
@@ -52,6 +52,8 @@ RUN emcc src/libsecp256k1_la-secp256k1.o \
   "_secp256k1_ecdsa_sign_recoverable", \
   "_secp256k1_ecdsa_verify" \
   ]' \
-  -o out/secp256k1/secp256k1.js
+  -o /out/secp256k1.js
 
-CMD ["cp", "out/secp256k1/secp256k1.js", "/target/secp256k1.js"]
+
+
+CMD ["cp", "/out/*.js", "/target/"]

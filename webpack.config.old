@@ -1,0 +1,39 @@
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
+
+const jsbtc_web = {
+    node: {
+        fs: 'empty'
+    },
+    entry: './src/jsbtc.js',
+    output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'jsbtc.js',
+      library: 'jsbtc',
+     libraryTarget: 'umd',
+    },
+    externals: {
+      lodash: {
+        commonjs: 'lodash',
+        commonjs2: 'lodash',
+        amd: 'lodash',
+        root: '_',
+      },
+    },
+    optimization: {
+        minimize: true,
+
+        minimizer: [
+            new TerserPlugin({
+                extractComments: false,
+                terserOptions: {
+                    output: {
+                        comments: false,
+                    },
+                },
+            }),
+        ],
+    }
+  };
+
+module.exports = [jsbtc_web];
