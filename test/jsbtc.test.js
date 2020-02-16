@@ -20,7 +20,7 @@ describe("Test jsbtc library", function() {
                          "c71d137da140c5afefd7db8e7a255df45c2ac46064e934416dc04020a91f3fd2");
             assert.equal(jsbtc.sha256("7465737420736861323536", {hex: true}),
                 "c71d137da140c5afefd7db8e7a255df45c2ac46064e934416dc04020a91f3fd2");
-            assert.equal(jsbtc.sha256("00bb", {hex:true, inputNotHex: true}),
+            assert.equal(jsbtc.sha256("00bb", {hex:true, encoding: 'utf8'}),
                 "bb88b952880c3a64d575449f8c767a53c52ce8f55f9c80f83e851aa6fce5bbea");
             assert.equal(jsbtc.sha256("30306262", {hex:true}),
                 "bb88b952880c3a64d575449f8c767a53c52ce8f55f9c80f83e851aa6fce5bbea");
@@ -34,7 +34,7 @@ describe("Test jsbtc library", function() {
                 "1ab3067efb509c48bda198f48c473f034202537c28b7b4c3b2ab2c4bf4a95c8d");
             assert.equal(jsbtc.doubleSha256("7465737420646f75626c6520736861323536", {hex: true}),
                 "1ab3067efb509c48bda198f48c473f034202537c28b7b4c3b2ab2c4bf4a95c8d");
-            assert.equal(jsbtc.doubleSha256("00bb", {hex:true, inputNotHex: true}),
+            assert.equal(jsbtc.doubleSha256("00bb", {encoding: "utf8", hex:true}),
                 "824d078ceda8e8eb07cc8181a81f43c8855586c913dd7f54c94f05134e085d5f");
             assert.equal(jsbtc.doubleSha256("30306262", {hex:true}),
                 "824d078ceda8e8eb07cc8181a81f43c8855586c913dd7f54c94f05134e085d5f");
@@ -173,8 +173,10 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.isWifValid("5KPPLXhtga99qqMcWRo4Z6LXV3Kx6a9hRx3ez2U7EwP5KZfy2Wf"), false);
             assert.equal(jsbtc.isWifValid("93A1vGXSGoDHotruGmgyRgtV8hgfFjgtmtuc4epcag886W9d44L"), true);
             assert.equal(jsbtc.isWifValid("cUWo47XLYiyFByuFicFS3y4FAza3r3R5XA7Bm7wA3dgSKDYox7h6"), true);
-            assert.equal(jsbtc.isWifValid("cUWo47XLYiyByuFicFS3y4FAza3r3R5XA7Bm7wA3dgSKDYox7h6"), false);
-
+            assert.equal(jsbtc.isWifValid("cUWo47XLYiyFByuFicFS3y4FAza3r3R5XA7Bm7wA3dgSKDYox7h6"), true);
+            assert.equal(jsbtc.isWifValid("cUWo47X@YiyByuFicFS3y4FAza3r3R5XA7Bm7wA3dgSKDYox7h6"), false);
+            assert.equal(jsbtc.isWifValid("cUWo47XLYiyFByuFicFS3y4FAza3r3R5XA7Bm7wA3dgSKDYox7h9"), false);
+            assert.equal(jsbtc.isWifValid(44), false);
         });
 
         it('privateToPublicKey',  () => {
@@ -188,6 +190,8 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.privateToPublicKey("L49obCXV7fGz2YRzLCSJgeZBYmGeBbKPT7xiehUeYX2S4URkPFZX"), pk);
             assert.equal(jsbtc.privateToPublicKey("5KPPLXhtga99qqMceRo4Z6LXV3Kx6a9hRx3ez2U7EwP5KZfy2Wf"), pu);
             assert.equal(jsbtc.privateToPublicKey("93A1vGXSGoDHotruGmgyRgtV8hgfFjgtmtuc4epcag886W9d44L"), pu);
+            expect(() => jsbtc.privateToPublicKey(45)).to.throw('invalid');
+
         });
 
         it('isPublicKeyValid',  () => {
@@ -213,22 +217,24 @@ describe("Test jsbtc library", function() {
             let pc = "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
             let s = jsbtc.Buffer.concat([B([pc.length / 2]), B(pc, 'hex'), B([OP.OP_CHECKSIG])])
             let h = jsbtc.hash160(pc);
-            // script test wait script to hash
             assert.equal(jsbtc.hashToAddress(h), "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
             assert.equal(jsbtc.hashToAddress(h, {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
             let pk = "03b635dbdc16dbdf4bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
             h = jsbtc.hash160(pk);
             assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN}), "1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1");
-            assert.equal(jsbtc.hashToAddress(h, {
-                testnet: true,
-                witness_version: NaN
-            }), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
+            assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
+            assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN, testnet: true, script_hash: true}), "2N87FX8HDDjrFTAuHSnoSo9cievn7uAM8rV");
+            expect(() => jsbtc.hashToAddress(h.toString('hex') + "00")).to.throw('length incorrect');
+            expect(() => jsbtc.hashToAddress(h.toString('hex') + "00",  {witness_version: NaN})).to.throw('length incorrect');
+
+            assert.equal(jsbtc.hashToAddress(h, {testnet: true, witness_version: NaN}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
             let p = "L32a8Mo1LgvjrVDbzcc3NkuUfkpoLsf2Y2oEWkV4t1KpQdFzuyff";
             pk = jsbtc.privateToPublicKey(p, {hex: false});
             let script = jsbtc.Buffer.concat([jsbtc.Buffer.from([0, 20]), jsbtc.hash160(pk)]);
             let script_hash = jsbtc.hash160(script);
             assert.equal(jsbtc.hashToAddress(script_hash, {testnet: false, script_hash: true, witness_version: NaN}),
                 "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
+            expect(() => jsbtc.hashToAddress("test non hex input")).to.throw('encoding required');
 
             let test = false;
             try {
@@ -255,12 +261,14 @@ describe("Test jsbtc library", function() {
             h = "14c14c8d26acbea970757b78e6429ad05a6ac6bb";
             assert.equal(jsbtc.addressToHash("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw", {hex: true}), h);
             assert.equal(jsbtc.addressToHash("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {hex: true}), h);
+
+            expect(() => jsbtc.addressToHash(90)).to.throw('invalid');
             expect(jsbtc.addressToHash("QM1u8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {hex: true})).to.be.NaN;
         });
 
         it('publicKeyToAddress', () => {
             let cpub = "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
-            expect(() => jsbtc.publicKeyToAddress("02qqbe667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")).to.throw('public key invalid, expected bytes Buffer or hex string');
+            expect(() => jsbtc.publicKeyToAddress("02qqbe667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")).to.throw('encoding required');
             assert.equal(jsbtc.publicKeyToAddress(cpub), "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4");
             assert.equal(jsbtc.publicKeyToAddress(cpub, {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
             assert.equal(jsbtc.publicKeyToAddress(jsbtc.Buffer.from(cpub, 'hex'), {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
@@ -269,11 +277,122 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.publicKeyToAddress(cpub, {witness_version: NaN, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
             let priv = "L32a8Mo1LgvjrVDbzcc3NkuUfkpoLsf2Y2oEWkV4t1KpQdFzuyff";
             assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {p2sh_p2wpkh: true, witness_version: NaN}), "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
+            expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv, {compressed: false}), {p2sh_p2wpkh: true})).to.throw('length invalid');
+            expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv, {compressed: false}), {p2sh_p2wpkh: false, witness_version: 0})).to.throw('length invalid');
+            expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(cpub + "00", {compressed: false}))).to.throw('length invalid');
             priv = "5HrHm3Q2jUnvZPPKKDNkSSLoCqh5QyP7nvFGzHNxgw27ffPJjce";
             assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {witness_version: NaN}), "1HMkFegHBraqmvvX3FP9q2Q9CymB9T9y8g");
 
         });
 
+        it('addressType', () => {
+            assert.equal(jsbtc.addressType("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), 'P2WPKH');
+            assert.equal(jsbtc.addressType("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"), 'P2WPKH');
+            assert.equal(jsbtc.addressType("bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"), 'P2WSH');
+            assert.equal(jsbtc.addressType("tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7"), 'P2WSH');
+            assert.equal(jsbtc.addressType("1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1"), 'P2PKH');
+            assert.equal(jsbtc.addressType("mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c"), 'P2PKH');
+            assert.equal(jsbtc.addressType("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw"), 'P2SH');
+            assert.equal(jsbtc.addressType("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"), 'P2SH');
+            assert.equal(jsbtc.addressType("rMu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"), 'NON_STANDARD');
+            let C = jsbtc.constants.SCRIPT_TYPES
+            assert.equal(jsbtc.addressType("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", {num: true}), C['P2WPKH']);
+            assert.equal(jsbtc.addressType("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx",  {num: true}), C['P2WPKH']);
+            assert.equal(jsbtc.addressType("bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3",  {num: true}), C['P2WSH']);
+            assert.equal(jsbtc.addressType("tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",  {num: true}), C['P2WSH']);
+
+            assert.equal(jsbtc.addressType("1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1",  {num: true}), C['P2PKH']);
+            assert.equal(jsbtc.addressType("mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c",  {num: true}), C['P2PKH']);
+            assert.equal(jsbtc.addressType("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw",  {num: true}), C['P2SH']);
+            assert.equal(jsbtc.addressType("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {num: true}), C['P2SH']);
+            assert.equal(jsbtc.addressType("rMu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {num: true}), C['NON_STANDARD']);
+        });
+
+        it('addressNetType', () => {
+            assert.equal(jsbtc.addressNetType("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), 'mainnet');
+            assert.equal(jsbtc.addressNetType("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"), 'testnet');
+            assert.equal(jsbtc.addressNetType("bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"), 'mainnet');
+            assert.equal(jsbtc.addressNetType("tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7"), 'testnet');
+            assert.equal(jsbtc.addressNetType("1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1"), 'mainnet');
+            assert.equal(jsbtc.addressNetType("mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c"), 'testnet');
+            assert.equal(jsbtc.addressNetType("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw"), 'mainnet');
+            assert.equal(jsbtc.addressNetType("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"), 'testnet');
+            expect(jsbtc.addressNetType("rMu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh")).to.be.NaN;
+        });
+
+
+        it('addressToScript', () => {
+            assert.equal(jsbtc.addressToScript("17rPqUf4Hqu6Lvpgfsavt1CzRy2GL19GD3", {'hex': true}),
+                '76a9144b2832feeda5692c96c0594a6314136a998f515788ac');
+            assert.equal(jsbtc.addressToScript("33RYUa9jT541UNPsKdV7V1DmwMiQHpVfD3", {'hex': true}),
+                'a914130319921ecbcfa33fec2a8503c4ae1c86e4419387');
+            assert.equal(jsbtc.addressToScript("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", {'hex': true}),
+                '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            assert.equal(jsbtc.addressToScript("17rPqUf4Hqu6Lvpgfsavt1CzRy2GL19GD3").toString('hex'),
+                '76a9144b2832feeda5692c96c0594a6314136a998f515788ac');
+            assert.equal(jsbtc.addressToScript("33RYUa9jT541UNPsKdV7V1DmwMiQHpVfD3").toString('hex'),
+                'a914130319921ecbcfa33fec2a8503c4ae1c86e4419387');
+            assert.equal(jsbtc.addressToScript("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4").toString('hex'),
+                '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            expect(() => jsbtc.addressToScript("bd6qejxtdg4y5r3zarvary0c5xw7kv8f3t4").toString('hex')).to.throw('address invalid');
+            expect(() => jsbtc.addressToScript(45)).to.throw('address invalid');
+
+        });
+
+        it('hashToScript', () => {
+            let h = "751e76e8199196d454941c45d1b3a323f1433bd6";
+            assert.equal(jsbtc.hashToScript(h, 0, {'hex': true}), '76a914751e76e8199196d454941c45d1b3a323f1433bd688ac');
+            assert.equal(jsbtc.hashToScript(h, 1, {'hex': true}), 'a914751e76e8199196d454941c45d1b3a323f1433bd687');
+            assert.equal(jsbtc.hashToScript(h, 5, {'hex': true}), '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            assert.equal(jsbtc.hashToScript(h, 6, {'hex': true}), '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            assert.equal(jsbtc.hashToScript(h, 6).toString("hex"), '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            assert.equal(jsbtc.hashToScript(h, "P2PKH", {'hex': true}), '76a914751e76e8199196d454941c45d1b3a323f1433bd688ac');
+            assert.equal(jsbtc.hashToScript(h, "P2SH", {'hex': true}), 'a914751e76e8199196d454941c45d1b3a323f1433bd687');
+            assert.equal(jsbtc.hashToScript(h, "P2WPKH", {'hex': true}), '0014751e76e8199196d454941c45d1b3a323f1433bd6');
+            expect(() => jsbtc.hashToScript(h, 90)).to.throw('unsupported script type');
+
+        });
+
+        it('publicKeyToP2SH_P2WPKHScript', () => {
+            let p = "0003b635dbdc16dbdf4bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
+            expect(() => jsbtc.publicKeyToP2SH_P2WPKHScript(p)).to.throw('public key len invalid');
+            p = "03b635dbdc16dbdf4bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
+            assert.equal(jsbtc.publicKeyToP2SH_P2WPKHScript(p, {hex: true}), "0014a307d67484911deee457779b17505cedd20e1fe9");
+            assert.equal(jsbtc.publicKeyToP2SH_P2WPKHScript(p).toString('hex'),"0014a307d67484911deee457779b17505cedd20e1fe9");
+        });
+
+        it('getWitnessVersion', () => {
+            assert.equal(jsbtc.getWitnessVersion("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), 0);
+        });
+
+        it('isAddressValid', () => {
+            assert.equal(jsbtc.isAddressValid("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"), true);
+            assert.equal(jsbtc.isAddressValid("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", {testnet: true}), true);
+            assert.equal(jsbtc.isAddressValid("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx"), false);
+            assert.equal(jsbtc.isAddressValid("bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"), true);
+            assert.equal(jsbtc.isAddressValid("tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7", {testnet: true}), true);
+            assert.equal(jsbtc.isAddressValid("1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1"), true);
+            assert.equal(jsbtc.isAddressValid("mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c", {testnet: true}), true);
+            assert.equal(jsbtc.isAddressValid("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw"), true);
+            assert.equal(jsbtc.isAddressValid(54), false);
+            assert.equal(jsbtc.isAddressValid("33am12q3Bncnn3BfvLYHczyv23Sq2WWbwjw"), false);
+            assert.equal(jsbtc.isAddressValid("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {testnet: true}), true);
+            assert.equal(jsbtc.isAddressValid("2Mu8y4mm4oF89yppDbUAAEwyBEPezrx7CLh"), false);
+            assert.equal(jsbtc.isAddressValid("2Mu8y4mm4oF89yppDbUAAEwyBEPezrx7CCLh"), false);
+            assert.equal(jsbtc.isAddressValid("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("tb1qw508d6qejxtdg4W5r3zarvary0c5xw7kxpjzsx", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("bc1qrp33g0q5c5txsp8arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"), false);
+            assert.equal(jsbtc.isAddressValid("TB1QRP23G0Q5C5TXSP9ARYSRX4K6ZDKFS4NCE4XJ0GDCCCEFVPYSXF3Q0SL5K7", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("TB1QRP23G0Q5C5TXSP9ARYSRX4K6ZDKFS4NCE4XJ0GDCCCEFVPYSXF3Q0sL5K7", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("tb1", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("tbqqrp23g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("1Fs2Xqrk4P2XADaJeZWykaGXJ2HEb6RyT1"), false);
+            assert.equal(jsbtc.isAddressValid("mvNyptwisQTkwL3vN8VMaVUrA3swVCX83c", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("33am12q3Bncmn3BfvLYHczyv23Sq2Wbwjw", {testnet: true}), false);
+            assert.equal(jsbtc.isAddressValid("33am12q3Bncmn3BfvLYHczyv23Sq2Wbwjw"), false);
+            assert.equal(jsbtc.isAddressValid("73am12q3Bncmn3BfvLYHczyv23Sq2Wbwjw"), false);
+            assert.equal(jsbtc.isAddressValid("2Mu8y4mm4oF78yppDbUAAEwyBEPezrx7CLh",  {testnet: true}), false);
+        });
     });
 
 

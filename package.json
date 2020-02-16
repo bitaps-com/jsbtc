@@ -1,6 +1,6 @@
 {
   "name": "jsbitcoin",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.0-development",
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
@@ -17,11 +17,11 @@
     "prebuild": "rimraf dist",
     "build": "babel --copy-files -d dist --ignore *.test.js src",
     "build:web": "npm run prebuild;webpack --output-filename jsbtc.web.min.js ",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bitaps-com/jsbtc.git"
+    "url": "https://github.com/bitaps-com/jsbtc.git"
   },
   "keywords": [
     "bitcoin"
@@ -54,7 +54,7 @@
     "mocha": "6.2.2",
     "nyc": "15.0.0",
     "rimraf": "3.0.1",
-    "semantic-release": "^17.0.2",
+    "semantic-release": "^17.0.3",
     "terser-webpack-plugin": "2.3.4",
     "webpack": "4.8.3",
     "webpack-cli": "2.1.3"

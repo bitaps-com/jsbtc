@@ -8,8 +8,8 @@ module.exports = function (constants, crypto, tools) {
     let getValue = CM.getValue;
     return {
         encodeBase58: (m, A = {})=> {
-            defArgs(A, {inputNotHex: false});
-            m = getBuffer(m, A.inputNotHex);
+            defArgs(A, {encoding: 'hex|utf8'});
+            m = getBuffer(m, A.encoding);
             if (m.length > 1073741823) throw new Error('encodeBase58 message is too long');
 
             let bP = malloc(m.length);
@@ -21,14 +21,14 @@ module.exports = function (constants, crypto, tools) {
             let q;
             for (q = 0; q <= eS; q++) {
                 out[q] = getValue(oP + q, 'i8');
-                if (out[q] == 0)  break
+                if (out[q] === 0)  break
             }
             free(bP);
             free(oP);
             return out.slice(0, q).toString();
         },
         decodeBase58: (m, A = {}) => {
-            defArgs(A, {hex: true, inputNotHex: false});
+            defArgs(A, {hex: true});
             if (!tools.isString(m)) throw new Error('decodeBase58 string required');
             if (m.length > 2147483647) throw new Error('decodeBase58 string is too long');
             let mB = new Buffer.alloc(m.length + 1);

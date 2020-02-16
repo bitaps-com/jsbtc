@@ -2,6 +2,7 @@ module.exports = function (constants, tools) {
     let BN = tools.BN;
     let nodeCrypto = tools.nodeCrypto;
     let window = tools.window;
+    let defArgs = tools.defArgs;
 
     function getRandomValues(buf) {
         if (window.crypto && window.crypto.getRandomValues) {
@@ -129,6 +130,9 @@ module.exports = function (constants, tools) {
     }
 
     function randomness_test(b) {
+        // NIST SP 800-22 randomness tests
+        // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-22r1a.pdf
+
         let p = new BN(b);
         let s = p.toString(2).padStart(256, '0')
         // Frequency (Monobit) Test
@@ -187,19 +191,11 @@ module.exports = function (constants, tools) {
     }
 
     return {
-        generateEntropy: function (named_args = {strength: 256, hex: true, sec256k1Order:true}) {
-            if (named_args.strength === undefined) {
-                named_args.strength = 256;
-            }
-            if (named_args.hex === undefined) {
-                named_args.hex = true;
-            }
-            if (named_args.sec256k1Order === undefined) {
-                named_args.sec256k1Order = true;
-            }
-            if (!([128, 160, 192, 224, 256].includes(named_args.strength))) {
+        generateEntropy: (A = {}) => {
+            defArgs(A, {strength: 256, hex: true, sec256k1Order:true});
+            if (!([128, 160, 192, 224, 256].includes(A.strength)))
                 throw new TypeError('strength should be one of the following [128, 160, 192, 224, 256]');
-            }
+
             let b = new tools.Buffer.alloc(32);
             let attempt = 0;
             let order = new BN(constants.ECDSA_SEC256K1_ORDER, 16);
@@ -211,25 +207,21 @@ module.exports = function (constants, tools) {
                 if (attempt > 100) throw new Error('Generate randomness failed');
                 getRandomValues(b);
 
-                if (named_args.sec256k1Order) {
+                if (A.sec256k1Order) {
                     p = new BN(b);
                     if ((p.gte(order))) continue;
                 }
 
                 try {
                     randomness_test(b);
-                } catch (e) {
-                    found = false;
-                }
+                } catch (e) { found = false; }
             }
             while (!found);
 
-            b = b.slice(0,named_args.strength / 8);
-            // let a = Buffer.from(p.toArray().slice(0, parseInt(named_args.strength / 8)));
-            return named_args.hex ? b.toString('hex') : b;
+            b = b.slice(0,A.strength / 8);
+            return A.hex ? b.toString('hex') : b;
         },
         igam: igam,
         igamc: igamc
     }
-
 };

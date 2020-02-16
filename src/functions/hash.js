@@ -9,8 +9,8 @@ module.exports = function (crypto, tools) {
     let getValue = CM.getValue;
     return {
         sha256: (m, A = {}) => {
-            defArgs(A, {hex: false, inputNotHex: false});
-            m = getBuffer(m, A.inputNotHex);
+            defArgs(A, {encoding: 'hex|utf8', hex: false});
+            m = getBuffer(m, A.encoding);
             let bP = malloc(m.length);
             let oP = malloc(32);
             CM.HEAPU8.set(m, bP);
@@ -22,8 +22,8 @@ module.exports = function (crypto, tools) {
             return (A.hex)? out.toString('hex'): out;
         },
         doubleSha256: (m, A = {}) => {
-            defArgs(A, {hex: false, inputNotHex: false});
-            m = getBuffer(m, A.inputNotHex);
+            defArgs(A, {encoding: 'hex|utf8', hex: false});
+            m = getBuffer(m, A.encoding);
             let bP = malloc(m.length);
             let oP = malloc(32);
             CM.HEAPU8.set(m, bP);
@@ -35,9 +35,9 @@ module.exports = function (crypto, tools) {
             return (A.hex)? out.toString('hex'): out;
         },
         siphash: function (m, A = {}) {
-            defArgs(A, {v0: tools.BNZerro, v1: tools.BNZerro, inputNotHex: false});
+            defArgs(A, {encoding: 'hex|utf8', v0: tools.BNZerro, v1: tools.BNZerro});
             if (!(A.v1 instanceof BN) || !(A.v0 instanceof BN)) throw new Error('siphash init vectors v0, v1 must be BN instance');
-            m = getBuffer(m, A.inputNotHex);
+            m = getBuffer(m, A.encoding);
             let v0b = A.v0.toArrayLike(Uint8Array, 'le', 8);
             let v1b = A.v1.toArrayLike(Uint8Array, 'le', 8);
             let bP = malloc(m.length);
@@ -55,8 +55,8 @@ module.exports = function (crypto, tools) {
             return new BN(out);
         },
         ripemd160: function (m, A = {}) {
-            defArgs(A, {hex: false, inputNotHex: false});
-            m = getBuffer(m, A.inputNotHex);
+            defArgs(A, {encoding: 'hex|utf8', hex: false});
+            m = getBuffer(m, A.encoding);
             let bP = malloc(m.length);
             let oP = malloc(32);
             CM.HEAPU8.set(m, bP);
@@ -68,9 +68,8 @@ module.exports = function (crypto, tools) {
             return (A.hex)? out.toString('hex'): out;
         },
         hash160: function (m, A = {}) {
-            defArgs(A, {hex: false, inputNotHex: false});
-            return this.ripemd160(this.sha256(m, {hex:false, inputNotHex: A.inputNotHex}),
-                {hex:A.hex });
+            defArgs(A, {encoding: 'hex|utf8', hex: false});
+            return this.ripemd160(this.sha256(m, {hex:false, encoding: A.encoding}), {hex:A.hex });
         }
     }
 };

@@ -56,13 +56,21 @@ module.exports = {
         this.privateToPublicKey = key.privateToPublicKey;
         this.isPublicKeyValid = key.isPublicKeyValid;
 
-        let address = addressInit(constants, hash, encoders, tools);
+        let address = addressInit(constants, hash, encoders, tools, opcodes);
         this.hashToAddress = address.hashToAddress;
         this.addressToHash = address.addressToHash;
         this.publicKeyToAddress = address.publicKeyToAddress;
+        this.addressType = address.addressType;
+        this.addressNetType = address.addressNetType;
+        this.addressToScript = address.addressToScript;
+        this.hashToScript = address.hashToScript;
+        this.publicKeyToP2SH_P2WPKHScript = address.publicKeyToP2SH_P2WPKHScript;
+        this.getWitnessVersion = address.getWitnessVersion;
+        this.isAddressValid = address.isAddressValid;
 
         this.opcodes = opcodes;
         this.tools = tools;
+        this.constants = constants;
         this.Buffer = tools.Buffer;
         this.isBuffer = tools.isBuffer;
 

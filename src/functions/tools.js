@@ -13,10 +13,19 @@ const BNZerro = new BN(0);
 
 let  isHex = s => Boolean(/^[0-9a-fA-F]+$/.test(s) && !(s.length % 2));
 
-function getBuffer(m, inputNotHex = false) {
-    if (isString(m)) return Buffer.from(m, (!inputNotHex)&&(isHex(m)) ? 'hex' : 'utf8');
-    return  (isBuffer(m))? m: Buffer.from(m);
+function getBuffer(m, encoding='hex') {
+    if (isBuffer(m)) return m;
+    if (isString(m)) {
+        encoding = encoding.split('|');
+        for (let e of encoding) {
+            if (e === 'hex') { if (isHex(m)) return Buffer.from(m, e);}
+            else if (e=='utf8')  return Buffer.from(m, e);
+        }
+        throw new Error(encoding + ' encoding required');
+    }
+    return Buffer.from(m);
 }
+
 function isString (value) {
     return typeof value === 'string' || value instanceof String;
 }
