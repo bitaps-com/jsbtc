@@ -8,7 +8,7 @@ module.exports = function (constants, hash, encoders, tools) {
             if (named_args.script_hash === undefined) named_args.script_hash = false;
             if (named_args.witness_version === undefined) named_args.witness_version = 0;
             if (!isBuffer(ha)) {
-                if (tools.isString(ha)) {
+                if (tools.isString(ha)&&tools.isHex(ha)) {
                     ha = Buffer.from(ha, 'hex');
                 } else throw new Error('address hash invalid, expected bytes Buffer or hex string');
             }
@@ -76,13 +76,13 @@ module.exports = function (constants, hash, encoders, tools) {
             if (named_args.witness_version === undefined) named_args.witness_version = 0;
 
             if (!isBuffer(pubkey)) {
-                if (tools.isString(pubkey)) {
+                if (tools.isString(pubkey)&&tools.isHex(pubkey)) {
                     pubkey = Buffer.from(pubkey, 'hex');
                 } else throw new Error('public key invalid, expected bytes Buffer or hex string');
             }
             let h;
             if (named_args.p2sh_p2wpkh) {
-                if (pubkey.length !== 33) throw new Error('public key invalid, expected bytes Buffer or hex string');
+                if (pubkey.length !== 33) throw new Error('public key length invalid');
                 h = hash.hash160(Buffer.concat([Buffer.from([0,20]), hash.hash160(pubkey)]));
                 named_args.witness_version = NaN
             }

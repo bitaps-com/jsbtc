@@ -1,58 +1,52 @@
 module.exports = function (constants, crypto, tools) {
     let Buffer = tools.Buffer;
-    let isBuffer = tools.isBuffer;
-    let malloc = crypto.module._malloc;
-    let free = crypto.module._free;
-    let getValue = crypto.module.getValue;
+    let CM = crypto.module;
+    let getBuffer = tools.getBuffer;
+    let defArgs = tools.defArgs;
+    let malloc = CM._malloc;
+    let free = CM._free;
+    let getValue = CM.getValue;
     return {
-        encodeBase58: function (msg, named_args = {msgNotHex: false}) {
-            if (!isBuffer(msg)) {
-                if (tools.isString(msg)) {
-                    msg = Buffer.from(msg, (!named_args.msgNotHex) && (tools.isHex(msg)) ? 'hex' : 'utf8');
-                } else {
-                    msg = Buffer.from(msg);
-                }
-            }
-            if (msg.length > 1073741823) throw new Error('encodeBase58 message is too long');
+        encodeBase58: (m, A = {})=> {
+            defArgs(A, {inputNotHex: false});
+            m = getBuffer(m, A.inputNotHex);
+            if (m.length > 1073741823) throw new Error('encodeBase58 message is too long');
 
-            let bufPointer = malloc(msg.length);
-            let estimateSize = msg.length * 138 / 100 + 1;
-            let outPointer = malloc(msg.length * 138 / 100 + 1);
-            crypto.module.HEAPU8.set(msg, bufPointer);
-            crypto.module._EncodeBase58(bufPointer, bufPointer + msg.length, outPointer);
-            let out = new Buffer.alloc(estimateSize);
+            let bP = malloc(m.length);
+            let eS = m.length * 138 / 100 + 1;
+            let oP = malloc(m.length * 138 / 100 + 1);
+            CM.HEAPU8.set(m, bP);
+            CM._EncodeBase58(bP, bP + m.length, oP);
+            let out = new Buffer.alloc(eS);
             let q;
-            for (q = 0; q <= estimateSize; q++) {
-                out[q] = getValue(outPointer + q, 'i8');
-                if (out[q] == 0) {
-                    break
-                }
+            for (q = 0; q <= eS; q++) {
+                out[q] = getValue(oP + q, 'i8');
+                if (out[q] == 0)  break
             }
-            free(bufPointer);
-            free(outPointer);
+            free(bP);
+            free(oP);
             return out.slice(0, q).toString();
         },
-        decodeBase58: function (msg, named_args = {hex: true, msgNotHex: false}) {
-            if (!tools.isString(msg)) throw new Error('decodeBase58 string required');
-            if (msg.length > 2147483647) throw new Error('decodeBase58 string is too long');
-            let m = new Buffer.alloc(msg.length + 1);
-            m.write(msg);
-            m.writeInt8(0, msg.length);
-            let bufPointer = malloc(m.length);
-            let outLengthPointer = malloc(4);
-            let outPointer = malloc(Math.ceil(msg.length * 733 / 1000) + 2);
-            crypto.module.HEAPU8.set(m, bufPointer);
-            crypto.module._DecodeBase58(bufPointer, outPointer, outLengthPointer);
-            let outLength = crypto.module.getValue(outLengthPointer, 'i32');
-            let out = new Buffer.alloc(outLength);
-            for (let q = 0; q <= outLength; q++) out[q] = getValue(outPointer + q, 'i8');
-            free(bufPointer);
-            free(outLengthPointer);
-            free(outPointer);
-            return (named_args.hex) ? out.toString('hex') : out;
+        decodeBase58: (m, A = {}) => {
+            defArgs(A, {hex: true, inputNotHex: false});
+            if (!tools.isString(m)) throw new Error('decodeBase58 string required');
+            if (m.length > 2147483647) throw new Error('decodeBase58 string is too long');
+            let mB = new Buffer.alloc(m.length + 1);
+            mB.write(m);
+            mB.writeInt8(0, m.length);
+            let bP = malloc(mB.length);
+            let oLP = malloc(4);
+            let oP = malloc(Math.ceil(m.length * 733 / 1000) + 2);
+            CM.HEAPU8.set(mB, bP);
+            CM._DecodeBase58(bP, oP, oLP);
+            let oL = CM.getValue(oLP, 'i32');
+            let out = new Buffer.alloc(oL);
+            for (let q = 0; q <= oL; q++) out[q] = getValue(oP + q, 'i8');
+            free(bP);
+            free(oLP);
+            free(oP);
+            return (A.hex) ? out.toString('hex') : out;
         },
-
-
         rebaseBits: function (data, frombits, tobits, pad) {
             if (pad === undefined) pad = true;
             let acc = 0;

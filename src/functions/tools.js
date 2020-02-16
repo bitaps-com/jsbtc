@@ -13,10 +13,18 @@ const BNZerro = new BN(0);
 
 let  isHex = s => Boolean(/^[0-9a-fA-F]+$/.test(s) && !(s.length % 2));
 
+function getBuffer(m, inputNotHex = false) {
+    if (isString(m)) return Buffer.from(m, (!inputNotHex)&&(isHex(m)) ? 'hex' : 'utf8');
+    return  (isBuffer(m))? m: Buffer.from(m);
+}
 function isString (value) {
     return typeof value === 'string' || value instanceof String;
 }
 
+function defArgs(named_args, values) {
+    for (let key in values)
+        if (named_args[key]===undefined) named_args[key] = values[key];
+}
 
 function bytesToHex(bytes) {
         return arrBytesToHex(bytes);
@@ -81,5 +89,7 @@ module.exports = {
     bytesToHex,
     intToBytes,
     bytesToString,
-    stringToBytes
+    stringToBytes,
+    defArgs,
+    getBuffer
 };
