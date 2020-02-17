@@ -130,10 +130,13 @@ const OPCODE = {
     OP_PUBKEYHASH: 0xfd,
     OP_PUBKEY: 0xfe,
     OP_INVALIDOPCODE: 0xff
-}
+};
+let RAW_OPCODE = {};
+for (let i in OPCODE) RAW_OPCODE[OPCODE[i]] = i;
 
 module.exports = {
-    OPCODE: OPCODE
+    OPCODE: OPCODE,
+    RAW_OPCODE: RAW_OPCODE
 };
 //
 // RAW_OPCODE = dict((OPCODE[i], i) for i in OPCODE)

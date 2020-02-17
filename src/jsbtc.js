@@ -75,6 +75,7 @@ module.exports = {
         this.publicKeyTo_PUBKEY_Script = script.publicKeyTo_PUBKEY_Script;
         this.parseScript = script.parseScript;
         this.scriptToAddress = script.scriptToAddress;
+        this.decodeScript = script.decodeScript;
 
 
         this.opcodes = opcodes;

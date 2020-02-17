@@ -5,6 +5,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
     let B = Buffer.from;
     let BC = Buffer.concat;
     let O = opcodes.OPCODE;
+    let RO = opcodes.RAW_OPCODE;
     let C = constants;
     let H = hash;
     return {
@@ -109,10 +110,10 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                     q += 1 + s[q + 1];
                 } else if  (s[q]===O.OP_PUSHDATA2) {
                     if (s[q + 1]===undefined) break;
-                    q += 2 + s.b.readIntLE(q, 2);
+                    q += 2 + s.readIntLE(q, 2);
                 } else if  (s[q]===O.OP_PUSHDATA4) {
                     if (s[q + 3]===undefined) break;
-                    q += 4 + s.b.readIntLE(q, 4);
+                    q += 4 + s.readIntLE(q, 4);
                 } else {
                     if (s[q]===O.OP_CHECKSIG) r++;
                     else if (s[q]===O.OP_CHECKSIGVERIFY) r++;
@@ -137,7 +138,71 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                 return address.hashToAddress(s.addressHash, {testnet: A.testnet, script_hash: sh, witness_version: wv})
             }
             return NaN;
+        },
+        decodeScript: function(s, A = {}) {
+            defArgs(A, {asm: false});
+            s = getBuffer(s);
+            let l = s.length, q = 0, result = [];
+            try{
+                while (l-q>0) {
+                    if ((s[q]<0x4c)&&(s[q])) {
+                        if (A.asm) {
+                            result.push(`OP_PUSHBYTES[${s[q]}]`);
+                            result.push(s.slice(q+1, q+1+s[q]).toString('hex'));
+                        } else result.push(`[${s[q]}]`);
+                        q += s[q]+1;
+                        continue;
+                    };
+
+                    if (s[q] === O.OP_PUSHDATA1) {
+                        if (A.asm) {
+                            result.push(`OP_PUSHDATA1[${s[q+1]}]`);
+                            result.push(s.slice(q+2, q+2+s[q+1]).toString('hex'));
+                        } else {
+                            result.push(RO[s[q]]);
+                            result.push(`[${s[q+1]}]`);
+                        }
+                        q+=1+s[q+1]+1;
+                        continue;
+                    };
+
+                    if (s[q] === O.OP_PUSHDATA2) {
+                        let w = s.readIntLE(q + 1, 2);
+                        if (A.asm) {
+                            result.push(`OP_PUSHDATA2[${w}]`);
+                            result.push(s.slice(q+3, q+3+w).toString('hex'));
+                        } else {
+                            result.push(RO[s[q]]);
+                            result.push(`[${s[w]}]`);
+                        }
+                        q+=w+3;
+                        continue;
+                    };
+
+                    if (s[q] === O.OP_PUSHDATA4) {
+                        let w = s.readIntLE(q + 1, 4);
+                        if (A.asm) {
+                            result.push(`OP_PUSHDATA4[${w}]`);
+                            result.push(s.slice(q+5, q+5+w).toString('hex'));
+                        } else {
+                            result.push(RO[s[q]]);
+                            result.push(`[${s[w]}]`);
+                        }
+                        q+=w+6;
+                        continue;
+                    };
+                    result.push(RO[s[q]]);
+                    q++;
+                }
+            } catch (e) {
+                result.push("[SCRIPT_DECODE_FAILED]");
+            }
+            return result.join(' ');
         }
+
+
+
+
 
     }
 };
