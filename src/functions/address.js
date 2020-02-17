@@ -115,34 +115,6 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             }
             throw new Error('address invalid');
         },
-        hashToScript: (h, script_type, A = {}) => {
-            defArgs(A, {hex: false});
-            if (tools.isString(script_type)) script_type = C.SCRIPT_TYPES[script_type];
-            h = getBuffer(h);
-            let s;
-            switch (script_type) {
-                case 0:
-                    s = BC([B([O.OP_DUP, O.OP_HASH160, 0x14]), h, B([O.OP_EQUALVERIFY, O.OP_CHECKSIG])]);
-                    break;
-                case 1:
-                    s = BC([B([O.OP_HASH160, 0x14]), h, B([O.OP_EQUAL])]);
-                    break;
-                case 5:
-                case 6:
-                    s = BC([B([0, 0x14]), h]);
-                    break;
-                default:
-                    throw new Error('unsupported script type');
-            }
-            return (A.hex) ? s.toString('hex') : s;
-        },
-        publicKeyToP2SH_P2WPKHScript: (h, A = {}) => {
-            defArgs(A, {hex: false});
-            h = getBuffer(h);
-            if (h.length !== 33) throw new Error("public key len invalid");
-            let s = BC([B([0, 0x14]), hash.hash160(h)]);
-            return (A.hex) ? s.toString('hex') : s;
-        },
         getWitnessVersion: (address) => encoders.rebase_32_to_5(address.split(1)[1])[0],
         isAddressValid: (address, A = {}) => {
             defArgs(A, {testnet: false});

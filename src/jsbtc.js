@@ -7,6 +7,7 @@ const encodersInit = require('./functions/encoders.js');
 const mnemonicInit = require('./functions/bip39_mnemonic.js');
 const keyInit = require('./functions/key.js');
 const addressInit = require('./functions/address.js');
+const scriptInit = require('./functions/script.js');
 
 module.exports = {
     __initTask: NaN,
@@ -67,6 +68,14 @@ module.exports = {
         this.publicKeyToP2SH_P2WPKHScript = address.publicKeyToP2SH_P2WPKHScript;
         this.getWitnessVersion = address.getWitnessVersion;
         this.isAddressValid = address.isAddressValid;
+
+        let script = scriptInit(constants, hash, encoders, tools, opcodes, address);
+        this.hashToScript = script.hashToScript;
+        this.publicKeyToP2SH_P2WPKHScript = script.publicKeyTo_P2SH_P2WPKH_Script;
+        this.publicKeyTo_PUBKEY_Script = script.publicKeyTo_PUBKEY_Script;
+        this.parseScript = script.parseScript;
+        this.scriptToAddress = script.scriptToAddress;
+
 
         this.opcodes = opcodes;
         this.tools = tools;

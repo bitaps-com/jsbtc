@@ -6,3 +6,6 @@
 
 
 JavaScript Bitcoin library
+
+
+Under development 

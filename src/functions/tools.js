@@ -100,5 +100,6 @@ module.exports = {
     bytesToString,
     stringToBytes,
     defArgs,
-    getBuffer
+    getBuffer,
+    hexToBytes
 };
