@@ -19,7 +19,7 @@ module.exports = function (crypto, tools) {
             for (let i=0; i<32; i++) out[i] = getValue(oP + i, 'i8');
             free(bP);
             free(oP);
-            return (A.hex)? out.toString('hex'): out;
+            return (A.hex)? out.hex(): out;
         },
         doubleSha256: (m, A = {}) => {
             defArgs(A, {encoding: 'hex|utf8', hex: false});
@@ -32,7 +32,7 @@ module.exports = function (crypto, tools) {
             for (let i=0; i<32; i++) out[i] = getValue(oP + i, 'i8');
             free(bP);
             free(oP);
-            return (A.hex)? out.toString('hex'): out;
+            return (A.hex)? out.hex(): out;
         },
         siphash: function (m, A = {}) {
             defArgs(A, {encoding: 'hex|utf8', v0: tools.BNZerro, v1: tools.BNZerro});
@@ -65,7 +65,7 @@ module.exports = function (crypto, tools) {
             for (let i=0; i<20; i++) out[i] = getValue(oP + i, 'i8');
             free(bP);
             free(oP);
-            return (A.hex)? out.toString('hex'): out;
+            return (A.hex)? out.hex(): out;
         },
         hash160: function (m, A = {}) {
             defArgs(A, {encoding: 'hex|utf8', hex: false});

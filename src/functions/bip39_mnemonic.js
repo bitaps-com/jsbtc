@@ -219,7 +219,7 @@ module.exports = function (constants, tools) {
             while (!found);
 
             b = b.slice(0,A.strength / 8);
-            return A.hex ? b.toString('hex') : b;
+            return A.hex ? b.hex() : b;
         },
         igam: igam,
         igamc: igamc

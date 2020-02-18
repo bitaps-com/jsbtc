@@ -19,6 +19,9 @@ Buffer.prototype.read = function (n) {
     return r;
 };
 
+Buffer.prototype.hex = function () {
+    return this.toString('hex');
+};
 
 
 

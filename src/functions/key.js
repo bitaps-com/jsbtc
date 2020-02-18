@@ -34,7 +34,7 @@ module.exports = function (constants, crypto, tools, mnemonic, encoders, hash,
             h = encoders.decodeBase58(h, {hex: false});
             if (!hash.doubleSha256(h.slice(0, h.length - 4), {hex: false}).slice(0, 4).equals(h.slice(h.length - 4, h.length)))
                 throw new Error('invalid byte string');
-            return (A.hex) ? h.slice(1, 33).toString('hex') : h.slice(1, 33)
+            return (A.hex) ? h.slice(1, 33).hex() : h.slice(1, 33)
         },
         isWifValid: (wif) => {
             if (!tools.isString(wif)) return false;
@@ -74,12 +74,14 @@ module.exports = function (constants, crypto, tools, mnemonic, encoders, hash,
             let publicKeyPointer = malloc(64);
             crypto.module.HEAPU8.set(privateKey, privateKeyPointer);
             crypto.module._secp256k1_ec_pubkey_create(secp256k1PrecompContextSign, publicKeyPointer, privateKeyPointer);
+            let outq = new Buffer.alloc(64);
+            for (let i=0; i<64; i++) outq[i] = getValue(publicKeyPointer + i, 'i8');
             let pubLen = (A.compressed) ? 33 : 65;
-            let publicKeySerializedPointer = malloc(pubLen);
+            let publicKeySerializedPointer = malloc(65);
             let pubLenPointer = malloc(1);
             crypto.module.HEAPU8.set([pubLen], pubLenPointer);
             let flag = (A.compressed) ? constants.SECP256K1_EC_COMPRESSED : constants.SECP256K1_EC_UNCOMPRESSED;
-            let r = crypto.module._secp256k1_ec_pubkey_serialize(secp256k1PrecompContextSign,
+            let r = crypto.module._secp256k1_ec_pubkey_serialize(secp256k1PrecompContextVerify,
                 publicKeySerializedPointer, pubLenPointer, publicKeyPointer, flag);
             let out;
             if (r) {
@@ -91,7 +93,7 @@ module.exports = function (constants, crypto, tools, mnemonic, encoders, hash,
             free(pubLenPointer);
             free(publicKeySerializedPointer);
             if (out === false) throw new Error('privateToPublicKey failed');
-            return (A.hex)? out.toString('hex'): out;
+            return (A.hex)? out.hex(): out;
         },
         isPublicKeyValid: function (key) {
             if (tools.isString(key)) {

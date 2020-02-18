@@ -45,7 +45,7 @@ module.exports = function (constants, crypto, tools) {
             free(bP);
             free(oLP);
             free(oP);
-            return (A.hex) ? out.toString('hex') : out;
+            return (A.hex) ? out.hex() : out;
         },
         rebaseBits: function (data, frombits, tobits, pad) {
             if (pad === undefined) pad = true;

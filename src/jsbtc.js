@@ -8,6 +8,7 @@ const mnemonicInit = require('./functions/bip39_mnemonic.js');
 const keyInit = require('./functions/key.js');
 const addressInit = require('./functions/address.js');
 const scriptInit = require('./functions/script.js');
+const addressClassesInit = require('./classes/address.js');
 
 module.exports = {
     __initTask: null,
@@ -87,6 +88,10 @@ module.exports = {
     this.publicKeyRecovery = script.publicKeyRecovery;
     this.isValidSignatureEncoding = script.isValidSignatureEncoding;
     this.parseSignature = script.parseSignature;
+
+    let addressClasses = addressClassesInit(constants, hash, encoders, tools, opcodes, address, key);
+    this.PrivateKey = addressClasses.PrivateKey;
+    this.PublicKey = addressClasses.PublicKey;
 
 
     this.opcodes = opcodes;

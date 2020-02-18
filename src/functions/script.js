@@ -25,20 +25,20 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                 default:
                     throw new Error('unsupported script type');
             }
-            return (A.hex) ? s.toString('hex') : s;
+            return (A.hex) ? s.hex() : s;
         },
         publicKeyTo_P2SH_P2WPKH_Script: (h, A = {}) => {
             defArgs(A, {hex: false});
             h = getBuffer(h);
             if (h.length !== 33) throw new Error("public key len invalid");
             let s = BC([B([0, 0x14]), hash.hash160(h)]);
-            return (A.hex) ? s.toString('hex') : s;
+            return (A.hex) ? s.hex() : s;
         },
         publicKeyTo_PUBKEY_Script: (k, A = {}) => {
             defArgs(A, {hex: false});
             k = getBuffer(k);
             let s = BC([B([k.length]), k, B([O.OP_CHECKSIG])]);
-            return (A.hex) ? s.toString('hex') : s;
+            return (A.hex) ? s.hex() : s;
         },
         parseScript: (s, A = {}) => {
             defArgs(A, {segwit: true});
@@ -145,7 +145,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                     if ((s[q]<0x4c)&&(s[q])) {
                         if (A.asm) {
                             result.push(`OP_PUSHBYTES[${s[q]}]`);
-                            result.push(s.slice(q+1, q+1+s[q]).toString('hex'));
+                            result.push(s.slice(q+1, q+1+s[q]).hex());
                         } else result.push(`[${s[q]}]`);
                         q += s[q]+1;
                         continue;
@@ -153,7 +153,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                     if (s[q] === O.OP_PUSHDATA1) {
                         if (A.asm) {
                             result.push(`OP_PUSHDATA1[${s[q+1]}]`);
-                            result.push(s.slice(q+2, q+2+s[q+1]).toString('hex'));
+                            result.push(s.slice(q+2, q+2+s[q+1]).hex());
                         } else {
                             result.push(RO[s[q]]);
                             result.push(`[${s[q+1]}]`);
@@ -165,7 +165,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                         let w = s.readIntLE(q + 1, 2);
                         if (A.asm) {
                             result.push(`OP_PUSHDATA2[${w}]`);
-                            result.push(s.slice(q+3, q+3+w).toString('hex'));
+                            result.push(s.slice(q+3, q+3+w).hex());
                         } else {
                             result.push(RO[s[q]]);
                             result.push(`[${s[w]}]`);
@@ -177,7 +177,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                         let w = s.readIntLE(q + 1, 4);
                         if (A.asm) {
                             result.push(`OP_PUSHDATA4[${w}]`);
-                            result.push(s.slice(q+5, q+5+w).toString('hex'));
+                            result.push(s.slice(q+5, q+5+w).hex());
                         } else {
                             result.push(RO[s[q]]);
                             result.push(`[${s[w]}]`);
@@ -249,7 +249,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             else result.push(s.slice(k,k+ls));
 
             let out = BC(result);
-            return (A.hex)? out.toString('hex'): out;
+            return (A.hex)? out.hex(): out;
         },
 
         scriptToHash: (s, A = {}) => {
@@ -317,7 +317,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
 
             if (r) {
                 return {
-                    signature: (A.hex) ? signature.toString('hex') : signature,
+                    signature: (A.hex) ? signature.hex() : signature,
                     recId: recId
                 }
             }
@@ -402,7 +402,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                 free(lP);
             }
 
-            if (r) return (A.hex)? out.toString('hex'): out;
+            if (r) return (A.hex)? out.hex(): out;
             return null;
         },
 
@@ -450,7 +450,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             let r = s.slice(5, 4+ lR);
             let lS = s[5 + lR];
             s = s.slice(lR + 6, s.length-1);
-            return [(A.hex)?r.toString('hex'):r, (A.hex)?s.toString('hex'):s];
+            return [(A.hex)?r.hex():r, (A.hex)?s.hex():s];
         },
 
     }

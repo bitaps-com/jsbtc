@@ -60,7 +60,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
                 h = encoders.rebase_5_to_8(q.slice(1, q.length - 6), false);
                 h = B(h);
             } else return null;
-            return (A.hex) ? h.toString('hex') : h;
+            return (A.hex) ? h.hex() : h;
         },
         publicKeyToAddress: function (pubkey, A = {}) {
             defArgs(A, {testnet: false, p2sh_p2wpkh: false, witness_version: 0});
@@ -102,16 +102,16 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             let s;
             if ([C.TESTNET_SCRIPT_ADDRESS_PREFIX, C.MAINNET_SCRIPT_ADDRESS_PREFIX].includes(a[0])) {
                 s = BC([B([O.OP_HASH160, 0x14]), this.addressToHash(a), B([O.OP_EQUAL])]);
-                return (A.hex) ? s.toString('hex') : s;
+                return (A.hex) ? s.hex() : s;
             }
             if ([C.MAINNET_ADDRESS_PREFIX, C.TESTNET_ADDRESS_PREFIX, C.TESTNET_ADDRESS_PREFIX_2].includes(a[0])) {
                 s = BC([B([O.OP_DUP, O.OP_HASH160, 0x14]), this.addressToHash(a), B([O.OP_EQUALVERIFY, O.OP_CHECKSIG])]);
-                return (A.hex) ? s.toString('hex') : s;
+                return (A.hex) ? s.hex() : s;
             }
             if ([C.TESTNET_SEGWIT_ADDRESS_PREFIX, C.MAINNET_SEGWIT_ADDRESS_PREFIX].includes(a.split("1")[0])) {
                 let h = this.addressToHash(a);
                 s = BC([B([O.OP_0, h.length]), this.addressToHash(a)]);
-                return (A.hex) ? s.toString('hex') : s;
+                return (A.hex) ? s.hex() : s;
             }
             throw new Error('address invalid');
         },
