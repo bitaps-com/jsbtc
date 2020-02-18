@@ -62,8 +62,7 @@
   "dependencies": {
     "bn.js": "5.1.1",
     "buffer": "5.4.3",
-    "global": "4.4.0",
-    "is-buffer": "2.0.4"
+    "global": "4.4.0"
   },
   "config": {
     "ghooks": {

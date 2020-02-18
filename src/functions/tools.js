@@ -1,5 +1,5 @@
 const Buffer = require('buffer/').Buffer;
-const isBuffer = require('is-buffer');
+const isBuffer = Buffer.isBuffer;
 const BN = require('bn.js');
 const window = require('global/window');
 let nodeCrypto = false;
@@ -9,17 +9,33 @@ try {
 
 }
 
+Buffer.prototype.read = function (n) {
+    if (this.__offset===undefined) this.__offset = 0;
+    if (this.__offset===this.length) return Buffer.from([]);
+    let m = this.__offset + n;
+    if (m > this.length) m = this.length;
+    let r = this.slice(this.__offset, m);
+    this.__offset = m;
+    return r;
+};
+
+
+
+
 const BNZerro = new BN(0);
 
 let  isHex = s => Boolean(/^[0-9a-fA-F]+$/.test(s) && !(s.length % 2));
 
 function getBuffer(m, encoding='hex') {
-    if (isBuffer(m)) return m;
+    if (isBuffer(m)) {
+        if (m.read === undefined) return Buffer.from(m);
+        return m;
+    }
     if (isString(m)) {
         encoding = encoding.split('|');
         for (let e of encoding) {
             if (e === 'hex') { if (isHex(m)) return Buffer.from(m, e);}
-            else if (e=='utf8')  return Buffer.from(m, e);
+            else if (e === 'utf8')  return Buffer.from(m, e);
         }
         throw new Error(encoding + ' encoding required');
     }
@@ -76,15 +92,20 @@ function stringUTF8ToBytes(str) {
         return stringToBytes(unescape(encodeURIComponent(str)))
     }
 
-function intToBytes(x, n) {
+function intToBytes(x, n, byte_order = "big") {
         let bytes = [];
         let i = n;
+        if (n === undefined) throw new Error('bytes count required');
+        if ((byte_order!=="big")&& (byte_order!=="little")) throw new Error('invalid byte order');
+        let b = (byte_order === "big");
         do {
-            bytes[--i] = x & (255);
+            (b) ? bytes.unshift(x & (255)): bytes.push(x & (255))
             x = x >> 8;
-        } while (i);
+        } while (--i);
         return bytes;
     }
+
+
 
 module.exports = {
     isHex,

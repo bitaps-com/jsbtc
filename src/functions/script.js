@@ -1,13 +1,10 @@
-module.exports = function (constants, hash, encoders, tools, opcodes, address) {
-    let Buffer = tools.Buffer;
-    let defArgs = tools.defArgs;
-    let getBuffer = tools.getBuffer;
-    let B = Buffer.from;
-    let BC = Buffer.concat;
-    let O = opcodes.OPCODE;
-    let RO = opcodes.RAW_OPCODE;
-    let C = constants;
-    let H = hash;
+module.exports = function (constants, hash, encoders, tools, opcodes, address, key, crypto, sign_context, verify_context) {
+    let Buffer = tools.Buffer, defArgs = tools.defArgs, getBuffer = tools.getBuffer;
+    let B = Buffer.from, BC = Buffer.concat;
+    let O = opcodes.OPCODE, RO = opcodes.RAW_OPCODE;
+    let C = constants, H = hash, CM = crypto.module;
+    let malloc = CM._malloc, free = CM._free, getValue = CM.getValue;
+
     return {
         hashToScript: (h, script_type, A = {}) => {
             defArgs(A, {hex: false});
@@ -53,13 +50,13 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                 if ((l === 22)&&(s[0] === 0))
                     return {nType: 5, type: "P2WPKH", reqSigs: 1, addressHash: s.slice(2)};
                 if ((l === 34)&&(s[0] === 0))
-                    return {nType: 6, type: "P2WSH", reqSigs: NaN, addressHash: s.slice(2)};
+                    return {nType: 6, type: "P2WSH", reqSigs: null, addressHash: s.slice(2)};
             }
 
             if ((l === 25)&&(s[0]===0x76)&&(s[1]===0xa9)&&(s[l-2]===0x88)&&(s[l-1]===0xac))
                 return {nType: 0, type: "P2PKH", reqSigs: 1, addressHash: s.slice(3,-2)};
             if ((l === 23)&&(s[0]===169)&&(s[l-1]===135))
-                return {nType: 1, type: "P2SH", reqSigs: NaN, addressHash: s.slice(2,-1)};
+                return {nType: 1, type: "P2SH", reqSigs: null, addressHash: s.slice(2,-1)};
             if (((l === 67)||(l === 35))&&(s[l-1]===172))
                 return {nType: 2, type: "PUBKEY", reqSigs: 1, addressHash: H.hash160(s.slice(1,-1))};
 
@@ -133,11 +130,11 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
             defArgs(A, {testnet: false});
             s = this.parseScript(s);
             if (s.addressHash !== undefined) {
-                let wv = ((s.nType===5)||(s.nType===6)) ? 0:NaN;
+                let wv = ((s.nType===5)||(s.nType===6)) ? 0:null;
                 let sh = ((s.nType===1)||(s.nType===6));
                 return address.hashToAddress(s.addressHash, {testnet: A.testnet, script_hash: sh, witness_version: wv})
             }
-            return NaN;
+            return null;
         },
         decodeScript: function(s, A = {}) {
             defArgs(A, {asm: false});
@@ -152,8 +149,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                         } else result.push(`[${s[q]}]`);
                         q += s[q]+1;
                         continue;
-                    };
-
+                    }
                     if (s[q] === O.OP_PUSHDATA1) {
                         if (A.asm) {
                             result.push(`OP_PUSHDATA1[${s[q+1]}]`);
@@ -164,8 +160,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                         }
                         q+=1+s[q+1]+1;
                         continue;
-                    };
-
+                    }
                     if (s[q] === O.OP_PUSHDATA2) {
                         let w = s.readIntLE(q + 1, 2);
                         if (A.asm) {
@@ -177,8 +172,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                         }
                         q+=w+3;
                         continue;
-                    };
-
+                    }
                     if (s[q] === O.OP_PUSHDATA4) {
                         let w = s.readIntLE(q + 1, 4);
                         if (A.asm) {
@@ -190,7 +184,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                         }
                         q+=w+6;
                         continue;
-                    };
+                    }
                     result.push(RO[s[q]]);
                     q++;
                 }
@@ -198,11 +192,218 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address) {
                 result.push("[SCRIPT_DECODE_FAILED]");
             }
             return result.join(' ');
-        }
+        },
+
+        delete_from_script: (script, sub_script, A = {}) => {
+            defArgs(A, {hex: false});
+            if (sub_script === undefined) return script;
+            if (sub_script.length === 0) return script;
+            let s = getBuffer(script);
+            let s2 = getBuffer(sub_script);
+
+            let l = s.length;
+            let ls = s2.length;
+            let q = 0, k = 0, stack = [], result = []
+            while (l-q>0) {
+                if ((s[q]<0x4c)&&(s[q])) {
+                    stack.push(s[q]+1);
+                    q+=s[q]+1;
+                }
+                else if (s[q] === O.OP_PUSHDATA1) {
+                    stack.push(1+s[q+1]);
+                    q+=1+s[q+1];
+                }
+                else if  (s[q] === O.OP_PUSHDATA2) {
+                    let w = s.readIntLE(q, 2);
+                    stack.push(2+w);
+                    q+=2+w;
+                }
+                else if  (s[q] === O.OP_PUSHDATA4) {
+                    let w = s.readIntLE(q, 4);
+                    stack.push(4+w);
+                    q+=4+w;
+                }
+                else {
+                    stack.push(1);
+                    q+=1
+                }
+
+                if (q-k >= ls) {
+                    if (s.slice(k,s).slice(0,ls).equal(s2)) {
+                        if (q-k>ls) result.push(s.slice(k+ls,q));
+                        let t = 0;
+                        while (t!==q-k) t+=stack.shift();
+                        k = q;
+                    }
+                    else {
+                        let t = stack.shift();
+                        result.push(s.slice(k, k + t));
+                        k += t;
+                    }
+                }
+            }
+
+            if (s.slice(k,q).slice(0,ls).equal(s2)) {
+                if (q - k > ls) result.push(s.slice(k+ls,q));
+            }
+            else result.push(s.slice(k,k+ls));
+
+            let out = BC(result);
+            return (A.hex)? out.toString('hex'): out;
+        },
+
+        scriptToHash: (s, A = {}) => {
+            defArgs(A, {witness: false, hex: true});
+            return (A.witness) ? hash.sha256(s, A) : hash.hash160(s, A)
+            },
+
+        opPushData: (s) => {
+           if (s.length <= 0x4b) return BC([B([s.length]), s]);
+           if (s.length <= 0xff) return BC([B([O.OP_PUSHDATA1, s.length]), s]);
+           if (s.length <= 0xffff) return BC([B([O.OP_PUSHDATA2].concat(tools.intToBytes(s.length, 2, 'little'))), s]);
+           return BC([B([O.OP_PUSHDATA4].concat(tools.intToBytes(s.length, 4, 'little'))), s]);
+        },
+
+        readOpcode: (s) => {
+            let b = s.read(1);
+            if (!b.length) return [null,null];
+            if (b[0] <= 0x4b) return [b, s.read(b[0])];
+            if (b[0] === O.OP_PUSHDATA1) return [b, s.read(s.read(1)[0])];
+            if (b[0] === O.OP_PUSHDATA2) return [b, s.read(s.read(2).readIntLE(0, 2))];
+            if (b[0] === O.OP_PUSHDATA4) return [b, s.read(s.read(4).readIntLE(0, 4))];
+            return [b, null]
+        },
+
+        signMessage: (m, private_key, A = {}) => {
+            defArgs(A, {encoding: 'hex|utf8', hex: false});
+            m = getBuffer(m, A.encoding);
+            if (tools.isString(private_key)) {
+                if (tools.isHex(private_key)) private_key = B(private_key, 'hex');
+                else if (key.isWifValid(m)) private_key = key.wifToPrivateKey(m, {hex: false});
+                else throw new Error("private key invalid");
+            }
+            else if (!Buffer.isBuffer(m)) private_key = B(m);
+            if (private_key.length !== 32) throw new Error("private key length invalid");
+            if (m.length !== 32) throw new Error("message length invalid");
+
+            let mP, pP, sP, len, signature,sDp,  r = 0, recId;
+            try {
+                mP = malloc(32);
+                pP = malloc(32);
+                sP = malloc(65);
+                sDp = malloc(72);
+                len = malloc(1);
+                CM.HEAPU8.set(m, mP);
+                CM.HEAPU8.set(private_key, pP);
+                r = CM._secp256k1_ecdsa_sign_recoverable(sign_context, sP, mP, pP, null, null);
+                if (r) {
+                    recId = getValue(sP + 64, 'i8');
+                    r = CM._secp256k1_ecdsa_signature_serialize_der(sign_context, sDp, len, sP)
+                    if (r) {
+                        let l = getValue(len, 'i8');
+                        signature = new Buffer.alloc(l);
+                        for (let i=0; i<l; i++) signature[i] = getValue(sDp + i, 'i8');
+                    }
+                }
 
 
+            } finally {
+                free(mP);
+                free(pP);
+                free(sP);
+                free(sDp);
+                free(len);
+            }
 
+            if (r) {
+                return {
+                    signature: (A.hex) ? signature.toString('hex') : signature,
+                    recId: recId
+                }
+            }
+            return null;
+        },
 
+        verifySignature: (s, p, m) => {
+            s = getBuffer(s);
+            p = getBuffer(p);
+            m = getBuffer(m);
+            let mP, pP, sP, sCp, pCp,  r = 0;
+            try {
+                mP = malloc(m.length);
+                pP = malloc(p.length);
+                sP = malloc(s.length);
+                sCp = malloc(64);
+                pCp = malloc(65);
+                CM.HEAPU8.set(m, mP);
+                CM.HEAPU8.set(p, pP);
+                CM.HEAPU8.set(s, sP);
+                r = CM._secp256k1_ecdsa_signature_parse_der(sign_context, sCp, sP, s.length);
+                if (r) {
+                    r = CM._secp256k1_ec_pubkey_parse(verify_context, pCp, pP, p.length);
+                    if (r) {
+                        r = CM._secp256k1_ecdsa_verify(verify_context, sCp, mP, pCp);
+                    }
+                }
+            }
+            finally {
+                free(mP);
+                free(pP);
+                free(sP);
+                free(sCp);
+            }
+            return Boolean(r);
+        },
 
+        publicKeyRecovery: (s, m, recId, A = {}) => {
+            defArgs(A, {compressed: true, hex: true});
+            s = getBuffer(s);
+            m = getBuffer(m);
+
+            let mP, sCp, sP,sCcP, sCcRp, lP, sPub, pub, out, r = 0, len,flag;
+            try {
+                mP = malloc(m.length);
+                sP = malloc(s.length);
+                sCp = malloc(64);
+                sCcP = malloc(64);
+                sCcRp = malloc(65);
+                pub = malloc(65);
+                sPub = malloc(65);
+                lP = malloc(1);
+                CM.HEAPU8.set(m, mP);
+                CM.HEAPU8.set(s, sP);
+                r = CM._secp256k1_ecdsa_signature_parse_der(sign_context, sCp, sP, s.length);
+                if (r) r = CM._secp256k1_ecdsa_signature_serialize_compact(sign_context, sCcP, sCp);
+                if (r) r = CM._secp256k1_ecdsa_recoverable_signature_parse_compact(sign_context, sCcRp, sCcP, recId);
+                if (r) r = CM._secp256k1_ecdsa_recover(verify_context, pub, sCcRp, mP);
+                if (r) {
+                    if (A.compressed) {
+                        len = 33;
+                        flag = C.SECP256K1_EC_COMPRESSED;
+                    } else {
+                        len = 65;
+                        flag = C.SECP256K1_EC_UNCOMPRESSED;
+                    }
+                    CM.HEAP8.set([len], lP);
+                    r = CM._secp256k1_ec_pubkey_serialize(verify_context, sPub, lP, pub, flag);
+                }
+                if (r) {
+                    out = new Buffer.alloc(len);
+                    for (let i=0; i<len; i++) out[i] = getValue(sPub + i, 'i8');
+                }
+            } finally {
+                free(mP);
+                free(sP);
+                free(sCp);
+                free(sCcP);
+                free(sCcRp);
+                free(pub);
+                free(sPub);
+                free(lP);
+            }
+
+            if (r) return (A.hex)? out.toString('hex'): out;
+            return null;
+        },
     }
 };

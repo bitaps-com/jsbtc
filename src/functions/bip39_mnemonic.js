@@ -34,7 +34,7 @@ module.exports = function (constants, tools) {
     }
 
     function lngamma(z) {
-        if (z < 0) return NaN;
+        if (z < 0) return null;
         let x = constants.GAMMA_TABLE_LN[0];
         for (let i = constants.GAMMA_TABLE_LN.length - 1; i > 0; --i) x += constants.GAMMA_TABLE_LN[i] / (z + i);
         let t = z + constants.GAMMA_NUM_LN + 0.5;

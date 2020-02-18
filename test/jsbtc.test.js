@@ -1,7 +1,9 @@
+var browser = true;
 try {
     var jsbtc = require('../src/jsbtc.js');
     var chai = require('chai');
     chai.use(require("chai-as-promised"));
+    browser = false;
 } catch (e) {
     console.log(e);
 }
@@ -10,7 +12,7 @@ try {
 const assert = chai.assert;
 const expect = chai.expect;
 
-describe("Test jsbtc library", function() {
+describe(`${(browser)? 'Browser':'Node'} test jsbtc library`, function() {
     it('Asynchronous initialization', async () => {
         await jsbtc.asyncInit();
     });
@@ -221,30 +223,30 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.hashToAddress(h, {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
             let pk = "03b635dbdc16dbdf4bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
             h = jsbtc.hash160(pk);
-            assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN}), "1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1");
-            assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
-            assert.equal(jsbtc.hashToAddress(h, {witness_version: NaN, testnet: true, script_hash: true}), "2N87FX8HDDjrFTAuHSnoSo9cievn7uAM8rV");
+            assert.equal(jsbtc.hashToAddress(h, {witness_version: null}), "1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1");
+            assert.equal(jsbtc.hashToAddress(h, {witness_version: null, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
+            assert.equal(jsbtc.hashToAddress(h, {witness_version: null, testnet: true, script_hash: true}), "2N87FX8HDDjrFTAuHSnoSo9cievn7uAM8rV");
             expect(() => jsbtc.hashToAddress(h.toString('hex') + "00")).to.throw('length incorrect');
-            expect(() => jsbtc.hashToAddress(h.toString('hex') + "00",  {witness_version: NaN})).to.throw('length incorrect');
+            expect(() => jsbtc.hashToAddress(h.toString('hex') + "00",  {witness_version: null})).to.throw('length incorrect');
 
-            assert.equal(jsbtc.hashToAddress(h, {testnet: true, witness_version: NaN}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
+            assert.equal(jsbtc.hashToAddress(h, {testnet: true, witness_version: null}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
             let p = "L32a8Mo1LgvjrVDbzcc3NkuUfkpoLsf2Y2oEWkV4t1KpQdFzuyff";
             pk = jsbtc.privateToPublicKey(p, {hex: false});
             let script = jsbtc.Buffer.concat([jsbtc.Buffer.from([0, 20]), jsbtc.hash160(pk)]);
             let script_hash = jsbtc.hash160(script);
-            assert.equal(jsbtc.hashToAddress(script_hash, {testnet: false, script_hash: true, witness_version: NaN}),
+            assert.equal(jsbtc.hashToAddress(script_hash, {testnet: false, script_hash: true, witness_version: null}),
                 "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
             expect(() => jsbtc.hashToAddress("test non hex input")).to.throw('encoding required');
 
             let test = false;
             try {
-                jsbtc.hashToAddress("test non hex input", {testnet: false, script_hash: true, witness_version: NaN})
+                jsbtc.hashToAddress("test non hex input", {testnet: false, script_hash: true, witness_version: null})
 
             } catch (e) {
                 test =true;
             }
             assert.equal(true, test);
-            assert.equal(jsbtc.hashToAddress(script_hash.toString('hex'), {testnet: false, script_hash: true, witness_version: NaN}),
+            assert.equal(jsbtc.hashToAddress(script_hash.toString('hex'), {testnet: false, script_hash: true, witness_version: null}),
                 "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
 
         });
@@ -263,7 +265,7 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.addressToHash("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {hex: true}), h);
 
             expect(() => jsbtc.addressToHash(90)).to.throw('invalid');
-            expect(jsbtc.addressToHash("QM1u8y4mm4oF88yppDbUAAEwyBEPezrx7CLh", {hex: true})).to.be.NaN;
+            assert.equal(jsbtc.addressToHash("QM1u8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"),null);
         });
 
         it('publicKeyToAddress', () => {
@@ -273,15 +275,15 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.publicKeyToAddress(cpub, {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
             assert.equal(jsbtc.publicKeyToAddress(jsbtc.Buffer.from(cpub, 'hex'), {testnet: true}), "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx");
             cpub = "03b635dbdc16dbdf4bb9cf5b55e7d03e514fb04dcef34208155c7d3ec88e9045f4";
-            assert.equal(jsbtc.publicKeyToAddress(cpub, {witness_version: NaN}), "1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1");
-            assert.equal(jsbtc.publicKeyToAddress(cpub, {witness_version: NaN, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
+            assert.equal(jsbtc.publicKeyToAddress(cpub, {witness_version: null}), "1Fs2Xqrk4P2XADaJeZWykaGXJ4HEb6RyT1");
+            assert.equal(jsbtc.publicKeyToAddress(cpub, {witness_version: null, testnet: true}), "mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c");
             let priv = "L32a8Mo1LgvjrVDbzcc3NkuUfkpoLsf2Y2oEWkV4t1KpQdFzuyff";
-            assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {p2sh_p2wpkh: true, witness_version: NaN}), "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
+            assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {p2sh_p2wpkh: true, witness_version: null}), "33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw");
             expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv, {compressed: false}), {p2sh_p2wpkh: true})).to.throw('length invalid');
             expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv, {compressed: false}), {p2sh_p2wpkh: false, witness_version: 0})).to.throw('length invalid');
             expect(() => jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(cpub + "00", {compressed: false}))).to.throw('length invalid');
             priv = "5HrHm3Q2jUnvZPPKKDNkSSLoCqh5QyP7nvFGzHNxgw27ffPJjce";
-            assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {witness_version: NaN}), "1HMkFegHBraqmvvX3FP9q2Q9CymB9T9y8g");
+            assert.equal(jsbtc.publicKeyToAddress(jsbtc.privateToPublicKey(priv), {witness_version: null}), "1HMkFegHBraqmvvX3FP9q2Q9CymB9T9y8g");
 
         });
 
@@ -317,7 +319,7 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.addressNetType("mvNyptwisQTmwL3vN8VMaVUrA3swVCX83c"), 'testnet');
             assert.equal(jsbtc.addressNetType("33am12q3Bncnn3BfvLYHczyv23Sq2Wbwjw"), 'mainnet');
             assert.equal(jsbtc.addressNetType("2Mu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"), 'testnet');
-            expect(jsbtc.addressNetType("rMu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh")).to.be.NaN;
+            assert.equal(jsbtc.addressNetType("rMu8y4mm4oF88yppDbUAAEwyBEPezrx7CLh"), null);
         });
 
         it('addressToScript', () => {
@@ -432,7 +434,7 @@ describe("Test jsbtc library", function() {
             s = "a914546fbecb877edbe5777bc0ce4c8be6989d8edd9387";
             assert.equal(f(s).nType, 1);
             assert.equal(f(s).addressHash.toString('hex'), '546fbecb877edbe5777bc0ce4c8be6989d8edd93');
-            assert.equal(isNaN(f(s).reqSigs), true);
+            assert.equal(f(s).reqSigs, null);
             s = "76a9143053ef41e2106fb5fea261c8ee3fd44f007b5ee688ac";
             assert.equal(f(s).type, "P2PKH");
             assert.equal(f(s).nType, 0);
@@ -451,7 +453,7 @@ describe("Test jsbtc library", function() {
             s = "0020701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d";
             assert.equal(f(s).type, "P2WSH");
             assert.equal(f(s).nType, 6);
-            assert.equal(isNaN(f(s).reqSigs), true);
+            assert.equal(f(s).reqSigs, null);
             assert.equal(f(s).addressHash.toString('hex'), '701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d')
 
             s = "512102953397b893148acec2a9da8341159e9e7fb3d32987c3563e8bdf22116213623";
@@ -524,7 +526,38 @@ describe("Test jsbtc library", function() {
             assert.equal(jsbtc.decodeScript(s, {asm: true}),'OP_15 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_PUSHBYTES[33] 0378d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71 OP_15 OP_CHECKMULTISIG');
             assert.equal(jsbtc.decodeScript('00144160bb1870159a08724557f75c7bb665a3a132e0', ),"OP_0 [20]");
             assert.equal(jsbtc.decodeScript('0020cdbf909e935c855d3e8d1b61aeb9c5e3c03ae8021b286839b1a72f2e48fdba70', ),"OP_0 [32]");
+
         });
+
+
+        it('signMessage', () => {
+            let s = "3044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb";
+            assert.equal(jsbtc.signMessage("64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6",
+                "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf", {hex: true}).signature, s);
+            assert.equal(jsbtc.signMessage("64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6",
+                "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf", {hex: true}).recId, 0);
+      });
+
+        it('verifySignature', () => {
+            let p = "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf";
+            let s = "3044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb";
+            let msg = "64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6";
+            assert.equal(jsbtc.verifySignature(s, jsbtc.privateToPublicKey(p), msg), true);
+        });
+        it('publicKeyRecovery', () => {
+            let s = "3044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb";
+            assert.equal(jsbtc.signMessage("64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6",
+                "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf", {hex: true}).signature, s);
+
+
+            let p = "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf";
+            s = "3044022047ac8e878352d3ebbde1c94ce3a10d057c24175747116f8288e5d794d12d482f0220217f36a485cae903c713331d877c1f64677e3622ad4010726870540656fe9dcb";
+            let msg = "64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6";
+            let r = jsbtc.signMessage("64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6",
+                "eb696a065ef48a2192da5b28b694f87544b30fae8327c4510137a922f32c6dcf", {hex: true}).recId;
+            assert.equal(jsbtc.publicKeyRecovery(s, msg, r, {hex: true}), jsbtc.privateToPublicKey(p, {hex: true}));
+        });
+
 
     });
 

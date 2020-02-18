@@ -12,7 +12,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             ha = getBuffer(ha);
             let prefix;
             if (!A.script_hash) {
-                if (isNaN(A.witness_version)) {
+                if (A.witness_version === null) {
                     if (ha.length !== 20) throw new Error('address hash length incorrect');
                     if (A.testnet) prefix = B(C.TESTNET_ADDRESS_BYTE_PREFIX);
                     else prefix = B(C.MAINNET_ADDRESS_BYTE_PREFIX);
@@ -24,7 +24,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
                 }
             }
 
-            if (isNaN(A.witness_version)) {
+            if (A.witness_version === null) {
                 if (A.testnet) prefix = B(C.TESTNET_SCRIPT_ADDRESS_BYTE_PREFIX);
                 else prefix = B(C.MAINNET_SCRIPT_ADDRESS_BYTE_PREFIX);
                 let h = BC([prefix, ha]);
@@ -59,7 +59,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
                 let q = encoders.rebase_32_to_5(a.split('1')[1]);
                 h = encoders.rebase_5_to_8(q.slice(1, q.length - 6), false);
                 h = B(h);
-            } else return NaN;
+            } else return null;
             return (A.hex) ? h.toString('hex') : h;
         },
         publicKeyToAddress: function (pubkey, A = {}) {
@@ -69,9 +69,9 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             if (A.p2sh_p2wpkh) {
                 if (pubkey.length !== 33) throw new Error('public key length invalid');
                 h = hash.hash160(BC([B([0, 20]), hash.hash160(pubkey)]));
-                A.witness_version = NaN
+                A.witness_version = null
             } else {
-                if (!isNaN(A.witness_version))
+                if (A.witness_version !== null)
                     if (pubkey.length !== 33) throw new Error('public key length invalid');
                 h = hash.hash160(pubkey);
             }
@@ -94,7 +94,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             if (a.slice(0, 2) === C.MAINNET_SEGWIT_ADDRESS_PREFIX) return "mainnet";
             if ([C.TESTNET_SCRIPT_ADDRESS_PREFIX, C.TESTNET_ADDRESS_PREFIX, C.TESTNET_ADDRESS_PREFIX_2].includes(a[0])) return "testnet";
             if (a.slice(0, 2) === C.TESTNET_SEGWIT_ADDRESS_PREFIX) return "testnet";
-            return NaN;
+            return null;
         },
         addressToScript: function (a, A = {}) {
             defArgs(A, {hex: false});
