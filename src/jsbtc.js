@@ -85,6 +85,8 @@ module.exports = {
     this.signMessage = script.signMessage;
     this.verifySignature = script.verifySignature;
     this.publicKeyRecovery = script.publicKeyRecovery;
+    this.isValidSignatureEncoding = script.isValidSignatureEncoding;
+    this.parseSignature = script.parseSignature;
 
 
     this.opcodes = opcodes;

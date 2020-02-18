@@ -405,5 +405,53 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             if (r) return (A.hex)? out.toString('hex'): out;
             return null;
         },
+
+        isValidSignatureEncoding: (s) => {
+            // # Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S] [sighash]
+            // # * total-length: 1-byte length descriptor of everything that follows,
+            //     #   excluding the sighash byte.
+            //     # * R-length: 1-byte length descriptor of the R value that follows.
+            //     # * R: arbitrary-length big-endian encoded R value. It must use the shortest
+            // #   possible encoding for a positive integers (which means no null bytes at
+            // #   the start, except a single one when the next byte has its highest bit set).
+            // # * S-length: 1-byte length descriptor of the S value that follows.
+            //     # * S: arbitrary-length big-endian encoded S value. The same rules apply.
+            //     # * sighash: 1-byte value indicating what data is hashed (not part of the DER
+            // #   signature)
+            s = getBuffer(s);
+            let l = s.length;
+            if (((l<9)||(l>73)) || (s[0]!==0x30) || (s[1]!==l-3))return false;
+            let lR = s[3];
+            if (5+lR>=l) return false;
+            let lS = s[5+lR];
+            if (((lR + lS + 7)!=l) || (s[2]!==0x02) || (lR===0) || (s[4]===0x80)) return false;
+            if (((lR>1)&&(s[4]===0)&&(!(s[5]&0x80))) || (s[lR+4]!==0x02) || (lS===0) || (s[lR+6]&0x80)) return false;
+            if ((lS>1)&&(s[lR+6]===0)&&(!(s[lR+7]&0x80))) return false;
+            return true;
+        },
+
+        parseSignature: function (s, A = {}) {
+            // # Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S] [sighash]
+            // # * total-length: 1-byte length descriptor of everything that follows,
+            //     #   excluding the sighash byte.
+            //     # * R-length: 1-byte length descriptor of the R value that follows.
+            //     # * R: arbitrary-length big-endian encoded R value. It must use the shortest
+            // #   possible encoding for a positive integers (which means no null bytes at
+            // #   the start, except a single one when the next byte has its highest bit set).
+            // # * S-length: 1-byte length descriptor of the S value that follows.
+            //     # * S: arbitrary-length big-endian encoded S value. The same rules apply.
+            //     # * sighash: 1-byte value indicating what data is hashed (not part of the DER
+            // #   signature)
+            defArgs(A, {hex: false});
+            s = getBuffer(s);
+            let l = s.length;
+            if (!this.isValidSignatureEncoding(s))  throw new Error('invalid signature');
+            let lR = s[3];
+            let r = s.slice(5, 4+ lR);
+            let lS = s[5 + lR];
+            s = s.slice(lR + 6, s.length-1);
+            return [(A.hex)?r.toString('hex'):r, (A.hex)?s.toString('hex'):s];
+        },
+
     }
 };
