@@ -89,9 +89,11 @@ module.exports = {
     this.isValidSignatureEncoding = script.isValidSignatureEncoding;
     this.parseSignature = script.parseSignature;
 
-    let addressClasses = addressClassesInit(constants, hash, encoders, tools, opcodes, address, key);
+    let addressClasses = addressClassesInit(constants, hash, encoders, tools, opcodes, address, key, script);
     this.PrivateKey = addressClasses.PrivateKey;
     this.PublicKey = addressClasses.PublicKey;
+    this.Address = addressClasses.Address;
+    this.ScriptAddress = addressClasses.ScriptAddress;
 
 
     this.opcodes = opcodes;

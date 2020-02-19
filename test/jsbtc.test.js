@@ -561,7 +561,7 @@ describe(`${(browser)? 'Browser':'Node'} test jsbtc library`, function() {
 
 
     describe("Address classes:", function(){
-        it('hashToScript', () => {
+        it('PrivateKey', () => {
             let h = "7B56E2B7BD189F4491D43A1D209E6268046DF1741F61B6397349D7AA54978E76";
             assert.equal(new jsbtc.PrivateKey(h, {'compressed': true, testnet: false}).wif,
                 'L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4');
@@ -576,9 +576,11 @@ describe(`${(browser)? 'Browser':'Node'} test jsbtc library`, function() {
                 '92XEhhfRT4EDnKuvZZBMH7yShUptVd4h58bnP6o1KnZXYzkVa55');
 
             assert.equal(new jsbtc.PrivateKey("L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4",
-                                             {'compressed': false, testnet: true}).wif,
+                {'compressed': false, testnet: true}).wif,
                 'L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4');
+        });
 
+        it('PublicKey', () => {
             let cpk = "02a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb4";
             let ucpk = "04a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb43bbd96a641808e5f34eb568e804fe679de82de419e2512736ea09013a82324a6"
 
@@ -590,7 +592,7 @@ describe(`${(browser)? 'Browser':'Node'} test jsbtc library`, function() {
                 {'compressed': false}).compressed, false);
             assert.equal(new jsbtc.PublicKey("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76",
                 {'compressed': false}).testnet, false);
-            assert.equal(new jsbtc.PublicKey(Buffer.from("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76", 'hex'),
+            assert.equal(new jsbtc.PublicKey(jsbtc.Buffer.from("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76", 'hex'),
                 {'compressed': false}).compressed, false);
 
             assert.equal(new jsbtc.PublicKey("L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4",
@@ -598,18 +600,39 @@ describe(`${(browser)? 'Browser':'Node'} test jsbtc library`, function() {
             assert.equal(new jsbtc.PublicKey("L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4",
                 {'compressed': false}).hex, cpk);
 
+            assert.equal(new jsbtc.PublicKey(new jsbtc.PrivateKey("L1MU1jUjUwZ6Fd1L2HDZ8qH4oSWxct5boCQ4C87YvoSZbTW41hg4")).hex, cpk);
+
             assert.equal(new jsbtc.PublicKey(ucpk).key.toString('hex'), ucpk);
             assert.equal(new jsbtc.PublicKey(cpk).key.toString('hex'), cpk);
             assert.equal(new jsbtc.PublicKey(ucpk, {compressed: true}).key.hex(), ucpk);
-            // assert.equal(new jsbtc.PublicKey("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76",
-            //     {'compressed': true}).compressed, false);
-            // assert.equal(new jsbtc.PublicKey("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76",
-            //     {'compressed': true}).testnet, false);
-            // assert.equal(new jsbtc.PublicKey("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76",
-            //     {'compressed': true, testnet: true}).testnet, true);
+
+        });
+
+        it('Address', () => {
+            let p = new jsbtc.PrivateKey("7b56e2b7bd189f4491d43a1d209e6268046df1741f61b6397349d7aa54978e76", {compressed: false});
+            let pub = new jsbtc.PublicKey(p);
+            assert.equal(new jsbtc.Address(p, {address_type: "P2PKH"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
+            assert.equal(new jsbtc.Address(p, {address_type: "PUBKEY"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
+
+            // from public key
+            p = new jsbtc.PublicKey('02a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb4');
+            assert.equal(new jsbtc.Address(p).address, 'bc1qxsms4rt5axt9674du2az7vq3pvephu3k5jyky8');
+            assert.equal(new jsbtc.Address(p, {address_type: "P2PKH"}).address, '15m65JmFohJiioQbzMWhqFeCS3ZL1KVaNh');
+            assert.equal(new jsbtc.Address(p, {address_type: "PUBKEY"}).address, '15m65JmFohJiioQbzMWhqFeCS3ZL1KVaNh');
+            assert.equal(new jsbtc.Address(p, {address_type: "P2SH_P2WPKH"}).redeemScriptHex, '001434370a8d74e9965d7aade2ba2f30110b321bf236');
+            assert.equal(new jsbtc.Address(p, {address_type: "P2SH_P2WPKH"}).publicKey.hex, '02a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb4');
+
+            // from uncompressed public key
+            p = new jsbtc.PublicKey('04a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb43bbd96a641808e5f34eb568e804fe679de82de419e2512736ea09013a82324a6');
+            assert.equal(new jsbtc.Address(p, {address_type: "P2PKH"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
+            assert.equal(new jsbtc.Address(p, {address_type: "PUBKEY"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
+
+            let redeem = "5221032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6921032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6921032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6953ae"
+            assert.equal(new jsbtc.ScriptAddress(redeem, {witness_version: null}).address, '3KCqqS6eznp3ucVPxtNkiYcVg6kQKNX9sg');
         });
 
     });
+
 
 });
 

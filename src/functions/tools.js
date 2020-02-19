@@ -108,7 +108,20 @@ function intToBytes(x, n, byte_order = "big") {
         return bytes;
     }
 
-
+function intToVarInt(i) {
+    if (i instanceof BN) {
+        if (i.lt(0xfd)) return i.toArray('little',1);
+        if (i.lt(0xffff)) return [0xfd].concat(i.toArray('little', 2));
+        if (i.lt(0xffffffff)) return [0xfe].concat(i.toArray('little', 4));
+        return [0xff].concat(i.toArray('little', 8));
+    }
+    else {
+        if (i < 0xfd) return [i];
+        if (i < 0xffff) return [0xfd].concat(intToBytes(i, 2, 'little'));
+        if (i < 0xffffffff) return [0xfe].concat(intToBytes(i, 4, 'little'));
+        return [0xff].concat(intToBytes(i, 8, 'little'));
+    }
+}
 
 module.exports = {
     isHex,
@@ -125,5 +138,6 @@ module.exports = {
     stringToBytes,
     defArgs,
     getBuffer,
-    hexToBytes
+    hexToBytes,
+    intToVarInt
 };
