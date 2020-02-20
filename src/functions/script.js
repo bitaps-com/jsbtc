@@ -140,6 +140,9 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             defArgs(A, {asm: false});
             s = getBuffer(s);
             let l = s.length, q = 0, result = [];
+            if (l===0) return '';
+
+
             try{
                 while (l-q>0) {
                     if ((s[q]<0x4c)&&(s[q])) {

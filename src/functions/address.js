@@ -44,7 +44,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
             ha.unshift(A.witness_version);
 
             let checksum = encoders.bech32Polymod(prefix.concat(ha.concat([0, 0, 0, 0, 0, 0])));
-            checksum = encoders.rebase_8_to_5(tools.intToBytes(checksum, 5)).slice(2);
+            checksum = encoders.rebase_8_to_5(tools.intToBytes(checksum, 5, 'big')).slice(2);
             return hrp + '1' + encoders.rebase_5_to_32(ha.concat(checksum), false);
         },
         addressToHash: (a, A = {}) => {
@@ -173,7 +173,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes) {
                     let checksum = d.slice(-6);
                     stripped_prefix = stripped_prefix.concat(h).concat([0, 0, 0, 0, 0, 0]);
                     let checksum2 = encoders.bech32Polymod(stripped_prefix);
-                    checksum2 = encoders.rebase_8_to_5(tools.intToBytes(checksum2, 5)).slice(2);
+                    checksum2 = encoders.rebase_8_to_5(tools.intToBytes(checksum2, 5, 'big')).slice(2);
                     if (tools.bytesToString(checksum) !== tools.bytesToString(checksum2)) return false;
                     return true;
                 }

@@ -9,6 +9,7 @@ const keyInit = require('./functions/key.js');
 const addressInit = require('./functions/address.js');
 const scriptInit = require('./functions/script.js');
 const addressClassesInit = require('./classes/address.js');
+const TransactionClassesInit = require('./classes/transaction.js');
 
 module.exports = {
     __initTask: null,
@@ -95,9 +96,14 @@ module.exports = {
     this.Address = addressClasses.Address;
     this.ScriptAddress = addressClasses.ScriptAddress;
 
+    let transactionClasses = TransactionClassesInit(constants, hash, encoders, tools, opcodes, address, key, script);
+    this.Transaction = transactionClasses.Transaction;
+
 
     this.opcodes = opcodes;
     this.tools = tools;
+    this.s2rh = tools.s2rh;
+    this.rh2s = tools.rh2s;
     this.constants = constants;
     this.Buffer = tools.Buffer;
     this.isBuffer = tools.isBuffer;
