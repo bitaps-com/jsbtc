@@ -142,11 +142,15 @@ function intToBytes(x, n, byte_order = "little") {
         if (n === undefined) throw new Error('bytes count required');
         if ((byte_order!=="big")&& (byte_order!=="little")) throw new Error('invalid byte order');
         let b = (byte_order === "big");
-        do {
-            (b) ? bytes.unshift(x & (255)): bytes.push(x & (255))
-            x = x >> 8;
-        } while (--i);
-
+        if (n <= 4)
+            do {
+                (b) ? bytes.unshift(x & (255)): bytes.push(x & (255))
+                x = x >> 8;
+            } while (--i);
+        else {
+            x = new BN(x);
+            bytes = x.toArrayLike(Array, (b)? 'be': 'le', n);
+        }
         return bytes;
     }
 

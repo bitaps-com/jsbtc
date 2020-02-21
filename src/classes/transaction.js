@@ -44,7 +44,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             this.amount = null;
             if (A.raw_tx === null) return;
             let tx = getBuffer(A.raw_tx);
-            this.amount = new tools.BN(0);
+            this.amount = 0;
             let sw = 0, swLen = 0;
             let start = (tx.__offset === undefined) ? 0 : tx.__offset;
             this.version = tx.readInt(4);
@@ -68,8 +68,8 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             let oc = T.varIntToInt(tx.readVarInt());
             for (let k = 0; k < oc; k++) {
                 this.vOut[k] = {};
-                this.vOut[k].value = new tools.BN(tx.read(8), 'le');
-                this.amount.iadd(this.vOut[k].value);
+                this.vOut[k].value = tx.readInt(8);
+                this.amount += this.vOut[k].value;
                 this.vOut[k].scriptPubKey = tx.read(T.varIntToInt(tx.readVarInt()));
                 let s = script.parseScript(this.vOut[k].scriptPubKey);
                 this.vOut[k].nType = s.nType;
@@ -176,12 +176,10 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                 this.vOut[i].scriptPubKeyOpcodes = script.decodeScript(this.vOut[i].scriptPubKey);
                 this.vOut[i].scriptPubKeyAsm = script.decodeScript(this.vOut[i].scriptPubKey, {asm: true});
             }
-            if (this.vOut[i].value instanceof tools.BN) this.vOut[i].value = this.vOut[i].value.toString(10);
+
 
 
         }
-        if (this.amount instanceof tools.BN) this.amount = this.amount.toString(10);
-
         if (isBuffer(this.data)) this.data = this.data.hex();
 
     };
@@ -243,8 +241,7 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
         chunks.push(B(T.intToVarInt(Object.keys(this.vOut).length)));
 
         for (let i in this.vOut) {
-            let n =  (iS(this.vOut[i].value)) ? new BN(this.vOut[i].value, 10): this.vOut[i].value;
-            chunks.push(n.toArrayLike(Buffer, 'le', 8));
+            chunks.push(B(T.intToBytes(this.vOut[i].value, 8)));
             let s = (iS(this.vOut[i].scriptPubKey))? B(this.vOut[i].scriptPubKey, 'hex'):this.vOut[i].scriptPubKey;
             chunks.push(B(T.intToVarInt(s.length)));
             chunks.push(s);
@@ -262,6 +259,91 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
         chunks.push(B(T.intToBytes(this.lockTime, 4)));
         let out = BC(chunks);
         return (A.hex)? out.hex(): out;
+    };
+
+    Transaction.prototype.json = function () {
+        let r;
+        if (this.format === 'raw') {
+            this.decode();
+            r = JSON.stringify(this);
+            this.encode();
+        } else r = JSON.stringify(this);
+        return r;
+    };
+
+    Transaction.prototype.addInput = function (A = {}) {
+        defArgs(A, {tx_id: null, v_out: 0, sequence: 0xffffffff,
+            script_sig: null, tx_in_witness: null, amount: null,
+            script_pub_key: null, address: null, private_key: null,
+            redeem_script: null, input_verify: true});
+        let witness = [], script;
+        if (A.tx_id === null) {
+            A.tx_id = Buffer(32);
+            A.v_out = 0xffffffff;
+            if (((A.sequence !== 0xffffffff)||(Object.keys(this.vOut).length))&&(A.input_verify))
+                throw new Error('invalid coinbase transaction');
+        }
+        if (iS(A.tx_id))
+            if (T.isHex(A.tx_id)) A.tx_id = B(A.tx_id, 'hex');
+            else  throw new Error('tx_id invalid');
+        if (!isBuffer(A.tx_id)||A.tx_id.length !== 32) throw new Error('tx_id invalid');
+
+        if (iS(A.script_sig))
+            if (T.isHex(A.script_sig)) A.script_sig = B(A.script_sig, 'hex');
+            else  throw new Error('script_sig invalid');
+        if (!isBuffer(A.script_sig)||((A.script_sig.length > 520)&&(A.input_verify)))
+            throw new Error('script_sig invalid');
+
+        if ((A.v_out<0)||A.v_out>0xffffffff) throw new Error('v_out invalid');
+        if ((A.sequence<0)||A.sequence>0xffffffff) throw new Error('v_out invalid');
+
+        if ((A.private_key !== null)&&(!(A.private_key instanceof address.PrivateKey)))
+            A.private_key = address.PrivateKey(A.private_key);
+
+        if ((A.amount!==null)&&((A.amount < 0)||(A.amount > MAX_AMOUNT)))
+            throw new Error('amount invalid');
+
+        if (A.tx_in_witness !== null) {
+            let l = 0;
+            for (let w of A.tx_in_witness) {
+                if (iS(w)) witness.push((this.format==='raw')?B(w,'hex'):w);
+                else witness.push((this.format==='raw')?w:B(w,'hex'));
+                l+= 1+w.length;
+            }
+        }
+
+        if (A.tx_id.equal(B(32))) {
+            if (!((A.v_out === 0xffffffff)&&(A.sequence === 0xffffffff)&&(A.script_sig.length <= 100)))
+                if (A.input_verify) throw new Error("coinbase tx invalid");
+            this.coinbase = true;
+        }
+
+        if (A.script_pub_key !== null) {
+            if (iS(A.script_pub_key)) A.script_pub_key = B(A.script_pub_key, 'hex');
+            if (!isBuffer(A.script_pub_key)) throw new Error("script_pub_key invalid");
+        }
+
+        if (A.redeem_script !== null) {
+            if (iS(A.redeem_script)) A.redeem_script = B(A.redeem_script, 'hex');
+            if (!isBuffer(A.redeem_script)) throw new Error("script_pub_key invalid");
+        }
+
+        if (A.address !== null) {
+            if (iS(A.address)) {
+                let net = address.addressNetType(A.address) === 'mainnet';
+                if (!(net !== this.testnet)) throw new Error("address invalid");
+                script = address.addressToScript(A.address);
+            } else if (A.address.address !== undefined) script = address.addressToScript(A.address.address);
+            else throw new Error("address invalid");
+            if (A.script_pub_key !== undefined) {
+                if (!A.script_pub_key.equals(script)) throw new Error("address not match script");
+            } else A.script_pub_key = script;
+
+        }
+
+        let k = Object.keys(this.vOut).length;
+
+
     };
 
 
