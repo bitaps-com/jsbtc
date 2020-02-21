@@ -12,8 +12,8 @@ Under development
 
 ####Build:
     npm install jsbitcoin
-    npm run build build:wasm:prebuild
-    npm build:wasm
-    npm build
-    npm build:web
+    npm run build:wasm:prebuild
+    npm run build:wasm
+    npm run build
+    npm runbuild:web
  
