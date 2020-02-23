@@ -15,5 +15,5 @@ Under development
     npm run build:wasm:prebuild
     npm run build:wasm
     npm run build
-    npm runbuild:web
+    npm run build:web
  

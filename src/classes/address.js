@@ -1,12 +1,10 @@
-module.exports = function (constants, hash, encoders, tools, opcodes, address, key, script) {
-    let T = tools;
-    let Buffer = T.Buffer;
-    let defArgs = T.defArgs;
-    let getBuffer = T.getBuffer;
-    let B = Buffer.from;
+module.exports = function (S) {
+    let Buffer = S.Buffer;
+    let defArgs = S.defArgs;
+    let getBuffer = S.getBuffer;
+    let BF = Buffer.from;
     let BC = Buffer.concat;
-    let O = opcodes.OPCODE;
-    let C = constants;
+    let O = S.OPCODE;
 
     class PrivateKey {
         constructor(k, A = {}) {
@@ -14,34 +12,34 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
             if (k === undefined) {
                 this.compressed = A.compressed;
                 this.testnet = A.testnet;
-                this.key = key.createPrivateKey({wif: false});
+                this.key = S.createPrivateKey({wif: false});
                 this.hex = this.key.hex();
-                this.wif = key.privateKeyToWif(this.key, A);
+                this.wif = S.privateKeyToWif(this.key, A);
             } else {
-                if (T.isString(k)) {
-                    if (T.isHex(k)) {
-                        this.key = B(k, 'hex');
+                if (S.isString(k)) {
+                    if (S.isHex(k)) {
+                        this.key = BF(k, 'hex');
                         this.compressed = A.compressed;
                         this.testnet = A.testnet;
                         this.hex = this.key.hex();
-                        this.wif = key.privateKeyToWif(this.key, A);
+                        this.wif = S.privateKeyToWif(this.key, A);
                     } else {
                         this.wif = k;
-                        this.key = key.wifToPrivateKey(k, {hex: false});
+                        this.key = S.wifToPrivateKey(k, {hex: false});
                         this.hex = this.key.hex();
-                        this.compressed = ![C.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX,
-                            C.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
-                        this.testnet = [C.TESTNET_PRIVATE_KEY_COMPRESSED_PREFIX,
-                            C.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
+                        this.compressed = ![S.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX,
+                            S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
+                        this.testnet = [S.TESTNET_PRIVATE_KEY_COMPRESSED_PREFIX,
+                            S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
                     }
                 } else {
-                    k = B(k);
+                    k = BF(k);
                     if (k.length !== 32) throw new Error('private key invalid');
                     this.compressed = A.compressed;
                     this.testnet = A.testnet;
                     this.key = k;
                     this.hex = this.key.hex();
-                    this.wif = key.privateKeyToWif(this.key, A);
+                    this.wif = S.privateKeyToWif(this.key, A);
                 }
             }
         }
@@ -62,22 +60,22 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                 A.testnet = k.testnet;
             }
 
-            if (T.isString(k)) {
-                if (T.isHex(k)) k = B(k, 'hex');
-                else if (key.isWifValid(k)) {
-                    this.compressed = ![C.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX,
-                        C.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
-                    this.testnet = [C.TESTNET_PRIVATE_KEY_COMPRESSED_PREFIX,
-                        C.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
-                    k = key.privateToPublicKey(k, {compressed: this.compressed, testnet: this.testnet, hex: false});
+            if (S.isString(k)) {
+                if (S.isHex(k)) k = BF(k, 'hex');
+                else if (S.isWifValid(k)) {
+                    this.compressed = ![S.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX,
+                        S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
+                    this.testnet = [S.TESTNET_PRIVATE_KEY_COMPRESSED_PREFIX,
+                        S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
+                    k = S.privateToPublicKey(k, {compressed: this.compressed, testnet: this.testnet, hex: false});
                 } else throw new Error('private/public key invalid');
-            } else k = B(k);
+            } else k = BF(k);
             if (k.length === 32) {
-                this.key = key.privateToPublicKey(k, {compressed: A.compressed, testnet: A.testnet, hex: false});
+                this.key = S.privateToPublicKey(k, {compressed: A.compressed, testnet: A.testnet, hex: false});
                 this.compressed = A.compressed;
                 this.testnet = A.testnet;
                 this.hex = this.key.hex();
-            } else if (key.isPublicKeyValid(k)) {
+            } else if (S.isPublicKeyValid(k)) {
                 this.hex = k.hex();
                 this.key = k;
                 this.compressed = (this.key.length === 33);
@@ -93,17 +91,17 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
 
     class Address {
         constructor(k, A = {}) {
-            defArgs(A, {address_type: "P2WPKH", testnet: false, compressed: true});
+            defArgs(A, {addressType: "P2WPKH", testnet: false, compressed: true});
 
             if (k === undefined) {
                 this.privateKey = new PrivateKey(undefined, A);
                 this.publicKey = new PublicKey(this.privateKey, A);
-            } else if (T.isString(k)) {
-                if (key.isWifValid(k)) {
+            } else if (S.isString(k)) {
+                if (S.isWifValid(k)) {
                     this.privateKey = new PrivateKey(k, A);
                     this.publicKey = new PublicKey(this.privateKey, A);
                 }
-                if (T.isHex(k)) k = B(k, 'hex');
+                if (S.isHex(k)) k = BF(k, 'hex');
                 else throw new Error('private/public key invalid');
             }
 
@@ -117,41 +115,41 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
                 A.compressed = k.compressed;
                 this.publicKey = k;
             } else {
-                if (!Buffer.isBuffer(k)) k = B(k);
+                if (!Buffer.isBuffer(k)) k = BF(k);
 
                 if (k.length === 32) {
                     this.privateKey = new PrivateKey(k, A);
                     this.publicKey = new PublicKey(this.privateKey, A);
-                } else if (key.isPublicKeyValid(k)) {
+                } else if (S.isPublicKeyValid(k)) {
                     this.publicKey = new PublicKey(key, A);
                 } else throw new Error('private/public key invalid');
                 this.testnet = A.testnet;
             }
 
-            if (!["P2PKH", "PUBKEY", "P2WPKH", "P2SH_P2WPKH"].includes(A.address_type)) {
+            if (!["P2PKH", "PUBKEY", "P2WPKH", "P2SH_P2WPKH"].includes(A.addressType)) {
                 throw new Error('address type invalid');
             }
 
-            this.type = A.address_type;
+            this.type = A.addressType;
             if (this.type === 'PUBKEY') {
-                this.publicKeyScript = BC([script.opPushData(this.publicKey.key), B([O.OP_CHECKSIG])])
+                this.publicKeyScript = BC([S.opPushData(this.publicKey.key), BF([O.OP_CHECKSIG])])
                 this.publicKeyScriptHex = this.publicKeyScript.hex()
             }
             this.witnessVersion = (this.type === "P2WPKH") ? 0 : null;
             if (this.type === "P2SH_P2WPKH") {
                 this.scriptHash = true;
-                this.redeemScript = script.publicKeyTo_P2SH_P2WPKH_Script(this.publicKey.key);
+                this.redeemScript = S.publicKeyTo_P2SH_P2WPKH_Script(this.publicKey.key);
                 this.redeemScriptHex = this.redeemScript.hex();
-                this.hash = hash.hash160(this.redeemScript);
+                this.hash = S.hash160(this.redeemScript);
                 this.witnessVersion = null;
             } else {
                 this.scriptHash = false;
-                this.hash = hash.hash160(this.publicKey.key);
+                this.hash = S.hash160(this.publicKey.key);
             }
             this.hashHex = this.hash.hex();
-            this.address = address.hashToAddress(this.hash, {
-                script_hash: this.scriptHash,
-                witness_version: this.witnessVersion, testnet: this.testnet
+            this.address = S.hashToAddress(this.hash, {
+                scriptHash: this.scriptHash,
+                witnessVersion: this.witnessVersion, testnet: this.testnet
             });
         }
     }
@@ -162,43 +160,43 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
 
     class ScriptAddress {
         constructor(s, A = {}) {
-            defArgs(A, {witness_version: 0, testnet: false});
-            this.witnessVersion = A.witness_version;
+            defArgs(A, {witnessVersion: 0, testnet: false});
+            this.witnessVersion = A.witnessVersion;
             this.testnet = A.testnet;
             s = getBuffer(s);
             this.script = s;
             this.scriptHex = s.hex();
-            if (this.witnessVersion === null) this.hash = hash.hash160(this.script);
-            else this.hash = hash.sha256(this.script);
-            this.scriptOpcodes = script.decodeScript(this.script);
-            this.scriptOpcodesAsm = script.decodeScript(this.script, {asm: true});
-            this.address = address.hashToAddress(this.hash, {
-                script_hash: true,
-                witness_version: this.witnessVersion, testnet: this.testnet
+            if (this.witnessVersion === null) this.hash = S.hash160(this.script);
+            else this.hash = S.sha256(this.script);
+            this.scriptOpcodes = S.decodeScript(this.script);
+            this.scriptOpcodesAsm = S.decodeScript(this.script, {asm: true});
+            this.address = S.hashToAddress(this.hash, {
+                scriptHash: true,
+                witnessVersion: this.witnessVersion, testnet: this.testnet
             });
         }
 
-        static multisig(n, m, key_list, A = {}) {
+        static multisig(n, m, keyList, A = {}) {
             if ((n > 15) || (m > 15) || (n > m) || (n < 1) || (m < 1))
                 throw new Error('invalid n of m maximum 15 of 15 multisig allowed');
-            if (key_list.length !== m)
+            if (keyList.length !== m)
                 throw new Error('invalid address list count');
-            let s = B([0x50 + n]);
-            for (let k of key_list) {
-                if (T.isString(k)) {
-                    if (T.isHex(k)) k = B(k, 'hex');
-                    else if (key.isWifValid(k)) k = key.privateToPublicKey(k, {hex: false});
+            let s = BF([0x50 + n]);
+            for (let k of keyList) {
+                if (S.isString(k)) {
+                    if (S.isHex(k)) k = BF(k, 'hex');
+                    else if (S.isWifValid(k)) k = S.privateToPublicKey(k, {hex: false});
                     else throw new Error('invalid key in key list');
                 }
                 if (k instanceof Address) k = k.publicKey.key;
-                if (k instanceof PrivateKey) k = key.privateToPublicKey(k.publicKey.key);
-                if (!Buffer.isBuffer(k)) k = B(k);
+                if (k instanceof PrivateKey) k = S.privateToPublicKey(k.publicKey.key);
+                if (!Buffer.isBuffer(k)) k = BF(k);
 
-                if (k.length === 32) k = key.privateToPublicKey(key);
+                if (k.length === 32) k = S.privateToPublicKey(k);
                 if (k.length !== 33) throw new Error('invalid public key list element size');
-                s = BC([s, T.intToVarInt(k), k]);
+                s = BC([s, S.intToVarInt(k), k]);
             }
-            s = BC([s, B([0x50 + n, O.OP_CHECKMULTISIG])]);
+            s = BC([s, BF([0x50 + n, O.OP_CHECKMULTISIG])]);
             return new ScriptAddress(s, A);
         }
     }
@@ -207,13 +205,10 @@ module.exports = function (constants, hash, encoders, tools, opcodes, address, k
         return `${this.address}`;
     };
 
-    return {
-        PrivateKey: PrivateKey,
-        PublicKey: PublicKey,
-        ScriptAddress: ScriptAddress,
-        Address: Address
-    }
-
+    S.PrivateKey = PrivateKey;
+    S.PublicKey = PublicKey;
+    S.ScriptAddress = ScriptAddress;
+    S.Address = Address;
 };
 
 

@@ -2,116 +2,53 @@ const __btcCryptoJS = require('./btc_crypto.js');
 const constants = require('./constants.js');
 const tools = require('./functions/tools.js');
 const opcodes = require('./opcodes.js');
-const hashInit = require('./functions/hash.js');
-const encodersInit = require('./functions/encoders.js');
-const mnemonicInit = require('./functions/bip39_mnemonic.js');
-const keyInit = require('./functions/key.js');
-const addressInit = require('./functions/address.js');
-const scriptInit = require('./functions/script.js');
-const addressClassesInit = require('./classes/address.js');
-const TransactionClassesInit = require('./classes/transaction.js');
+const hash = require('./functions/hash.js');
+const encoders = require('./functions/encoders.js');
+const mnemonic = require('./functions/bip39_mnemonic.js');
+const key = require('./functions/key.js');
+const address = require('./functions/address.js');
+const script = require('./functions/script.js');
+const Address = require('./classes/address.js');
+const Transation = require('./classes/transaction.js');
 
 module.exports = {
     __initTask: null,
-    asyncInit : async function () {
-        if  (this.__initTask === null) {
-        this.__initTask = await this.__asyncInit();
+    asyncInit: async function (scope) {
+        if (this.__initTask === null) {
+            this.__initTask = await this.__asyncInit(scope);
         } else {
-            if  (this.__initTask!=="completed") {
+            if (this.__initTask !== "completed") {
                 await this.__initTask;
             }
         }
     },
-    __asyncInit : async function () {
+    __asyncInit: async function (scope) {
+        if (scope === undefined) scope = this;
+        constants(scope);
+        tools(scope);
+        opcodes(scope);
+        scope.__bitcoin_core_crypto = await this.__initCryptoModule();
+        hash(scope);
+        encoders(scope);
+        mnemonic(scope);
 
-        let _crypto = await this.__initCryptoModule();
+        scope.secp256k1PrecompContextSign = scope.__bitcoin_core_crypto.module._secp256k1_context_create(scope.SECP256K1_CONTEXT_SIGN);
+        scope.secp256k1PrecompContextVerify = scope.__bitcoin_core_crypto.module._secp256k1_context_create(scope.SECP256K1_CONTEXT_VERIFY);
+        let seed = scope.generateEntropy({'hex': false});
+        let seedPointer = scope.__bitcoin_core_crypto.module._malloc(seed.length);
+        scope.__bitcoin_core_crypto.module.HEAPU8.set(seed, seedPointer);
+        scope.__bitcoin_core_crypto.module._secp256k1_context_randomize(scope.secp256k1PrecompContextSign, seedPointer);
 
-    let hash = hashInit(_crypto, tools);
-    this.sha256 = hash.sha256;
-    this.doubleSha256 = hash.doubleSha256;
-    this.siphash = hash.siphash;
-    this.ripemd160 = hash.ripemd160;
-    this.hash160 = hash.hash160;
-
-    let encoders = encodersInit(constants, _crypto, tools);
-    this.encodeBase58 = encoders.encodeBase58;
-    this.decodeBase58 = encoders.decodeBase58;
-
-    let mnemonic = mnemonicInit(constants, tools);
-    this.generate_entropy = mnemonic.generateEntropy;
-    this.igam = mnemonic.igam;
-    this.igamc = mnemonic.igamc;
-
-    this.secp256k1PrecompContextSign = _crypto.module._secp256k1_context_create(constants.SECP256K1_CONTEXT_SIGN);
-    this.secp256k1PrecompContextVerify = _crypto.module._secp256k1_context_create(constants.SECP256K1_CONTEXT_VERIFY);
-    let seed = mnemonic.generateEntropy({'hex': false});
-    let seedPointer = _crypto.module._malloc(seed.length);
-    _crypto.module.HEAPU8.set(seed, seedPointer);
-    _crypto.module._secp256k1_context_randomize(this.secp256k1PrecompContextSign, seedPointer);
-
-
-    let key = keyInit(constants, _crypto, tools, mnemonic, encoders, hash,
-        this.secp256k1PrecompContextSign, this.secp256k1PrecompContextVerify);
-    this.createPrivateKey = key.createPrivateKey;
-    this.privateKeyToWif = key.privateKeyToWif;
-    this.wifToPrivateKey = key.wifToPrivateKey;
-    this.isWifValid = key.isWifValid;
-    this.privateToPublicKey = key.privateToPublicKey;
-    this.isPublicKeyValid = key.isPublicKeyValid;
-
-    let address = addressInit(constants, hash, encoders, tools, opcodes);
-    this.hashToAddress = address.hashToAddress;
-    this.addressToHash = address.addressToHash;
-    this.publicKeyToAddress = address.publicKeyToAddress;
-    this.addressType = address.addressType;
-    this.addressNetType = address.addressNetType;
-    this.addressToScript = address.addressToScript;
-    this.hashToScript = address.hashToScript;
-    this.publicKeyToP2SH_P2WPKHScript = address.publicKeyToP2SH_P2WPKHScript;
-    this.getWitnessVersion = address.getWitnessVersion;
-    this.isAddressValid = address.isAddressValid;
-
-    let script = scriptInit(constants, hash, encoders, tools, opcodes,
-                            address, key, _crypto, this.secp256k1PrecompContextSign,
-                            this.secp256k1PrecompContextVerify);
-    this.hashToScript = script.hashToScript;
-    this.publicKeyToP2SH_P2WPKHScript = script.publicKeyTo_P2SH_P2WPKH_Script;
-    this.publicKeyTo_PUBKEY_Script = script.publicKeyTo_PUBKEY_Script;
-    this.parseScript = script.parseScript;
-    this.scriptToAddress = script.scriptToAddress;
-    this.decodeScript = script.decodeScript;
-    this.delete_from_script = script.delete_from_script;
-    this.scriptToHash = script.scriptToHash;
-    this.opPushData = script.opPushData;
-    this.readOpcode = script.readOpcode;
-    this.signMessage = script.signMessage;
-    this.verifySignature = script.verifySignature;
-    this.publicKeyRecovery = script.publicKeyRecovery;
-    this.isValidSignatureEncoding = script.isValidSignatureEncoding;
-    this.parseSignature = script.parseSignature;
-
-    let addressClasses = addressClassesInit(constants, hash, encoders, tools, opcodes, address, key, script);
-    this.PrivateKey = addressClasses.PrivateKey;
-    this.PublicKey = addressClasses.PublicKey;
-    this.Address = addressClasses.Address;
-    this.ScriptAddress = addressClasses.ScriptAddress;
-
-    let transactionClasses = TransactionClassesInit(constants, hash, encoders, tools, opcodes, address, key, script);
-    this.Transaction = transactionClasses.Transaction;
-
-
-    this.opcodes = opcodes;
-    this.tools = tools;
-    this.s2rh = tools.s2rh;
-    this.rh2s = tools.rh2s;
-    this.constants = constants;
-    this.Buffer = tools.Buffer;
-    this.isBuffer = tools.isBuffer;
+        key(scope);
+        address(scope);
+        script(scope);
+        Address(scope);
+        Transation(scope);
 
         this.__initTask = "completed";
     },
-    __initCryptoModule : () => {
-        return new Promise(function(resolve) {
+    __initCryptoModule: () => {
+        return new Promise(function (resolve) {
             __btcCryptoJS().then((module) => {
                 resolve({module});
             });

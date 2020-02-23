@@ -1,21 +1,18 @@
-module.exports = function (constants, tools) {
-    let BN = tools.BN;
-    let nodeCrypto = tools.nodeCrypto;
-    let window = tools.window;
-    let defArgs = tools.defArgs;
+module.exports = function (S) {
+    let BN = S.BN;
+    let nodeCrypto = S.__nodeCrypto;
+    let window = S.getWindow();
+    let ARGS = S.defArgs;
 
-    function getRandomValues(buf) {
-        if (window.crypto && window.crypto.getRandomValues) {
-            return window.crypto.getRandomValues(buf);
-        }
-        if (typeof window.msCrypto === 'object' && typeof window.msCrypto.getRandomValues === 'function') {
+
+    S.getRandomValues = (buf) => {
+        if (window.crypto && window.crypto.getRandomValues) return window.crypto.getRandomValues(buf);
+
+        if (typeof window.msCrypto === 'object' && typeof window.msCrypto.getRandomValues === 'function')
             return window.msCrypto.getRandomValues(buf);
-        }
 
         if (nodeCrypto!==false) {
-            if (!(buf instanceof Uint8Array)) {
-                throw new TypeError('expected Uint8Array');
-            }
+            if (!(buf instanceof Uint8Array))  throw new TypeError('expected Uint8Array');
             if (buf.length > 65536) {
                 let e = new Error();
                 e.code = 22;
@@ -28,29 +25,24 @@ module.exports = function (constants, tools) {
             let bytes = nodeCrypto.randomBytes(buf.length);
             buf.set(bytes);
             return buf;
-        } else {
-            throw new Error('No secure random number generator available.');
-        }
-    }
+        } else throw new Error('No secure random number generator available.');
+    };
 
-    function lngamma(z) {
+    S.lngamma = (z) => {
         if (z < 0) return null;
-        let x = constants.GAMMA_TABLE_LN[0];
-        for (let i = constants.GAMMA_TABLE_LN.length - 1; i > 0; --i) x += constants.GAMMA_TABLE_LN[i] / (z + i);
-        let t = z + constants.GAMMA_NUM_LN + 0.5;
+        let x = S.GAMMA_TABLE_LN[0];
+        for (let i = S.GAMMA_TABLE_LN.length - 1; i > 0; --i) x += S.GAMMA_TABLE_LN[i] / (z + i);
+        let t = z + S.GAMMA_NUM_LN + 0.5;
         return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x) - Math.log(z);
-    }
+    };
 
-    function igam(a, x) {
-        if (x <= 0 || a <= 0)
-            return 0.0;
-        if (x > 1.0 && x > a)
-            return 1.0 - igamc(a, x);
+    S.igam = (a, x) => {
+        if (x <= 0 || a <= 0) return 0.0;
+        if (x > 1.0 && x > a) return 1.0 - S.igamc(a, x);
         let ans, ax, c, r;
         /* Compute xa exp(-x) / gamma(a) */
-        ax = a * Math.log(x) - x - lngamma(a);
-        if (ax < -constants.MAXLOG)
-            return (0.0);
+        ax = a * Math.log(x) - x - S.lngamma(a);
+        if (ax < -S.MAXLOG) return (0.0);
         ax = Math.exp(ax);
         /* power series */
         r = a;
@@ -61,25 +53,20 @@ module.exports = function (constants, tools) {
             r += 1.0;
             c *= x / r;
             ans += c;
-        } while (c / ans > constants.MACHEP);
+        } while (c / ans > S.MACHEP);
 
         return (ans * ax / a);
-    }
+    };
 
-    function igamc(a, x) {
-        if (x <= 0 || a <= 0)
-            return 1.0;
-
-        if (x < 1.0 || x < a)
-            return 1.0 - igam(a, x);
+    S.igamc = (a, x) => {
+        if (x <= 0 || a <= 0) return 1.0;
+        if (x < 1.0 || x < a) return 1.0 - igam(a, x);
         let big = 4.503599627370496e15;
         let biginv = 2.22044604925031308085e-16;
         let ans, ax, c, yc, r, t, y, z;
         let pk, pkm1, pkm2, qk, qkm1, qkm2;
-        ax = a * Math.log(x) - x - lngamma(a);
-        if (ax < -constants.MAXLOG)
-            return 0.0;
-
+        ax = a * Math.log(x) - x - S.lngamma(a);
+        if (ax < -S.MAXLOG) return 0.0;
         ax = Math.exp(ax);
         y = 1.0 - a;
         z = x + y + 1.0;
@@ -113,13 +100,12 @@ module.exports = function (constants, tools) {
                 qkm2 *= biginv;
                 qkm1 *= biginv;
             }
-        } while (t > constants.MACHEP);
+        } while (t > S.MACHEP);
 
         return ans * ax;
+    };
 
-    }
-
-    function erfc(x) {
+    S.erfc =  (x) => {
         let z = Math.abs(x);
         let t = 1 / (1 + z / 2);
         let r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
@@ -127,9 +113,9 @@ module.exports = function (constants, tools) {
                 t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 +
                     t * (-0.82215223 + t * 0.17087277)))))))));
         return x >= 0 ? r : 2 - r;
-    }
+    };
 
-    function randomness_test(b) {
+    S.randomnessTest = (b) => {
         // NIST SP 800-22 randomness tests
         // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-22r1a.pdf
 
@@ -140,7 +126,7 @@ module.exports = function (constants, tools) {
         let s_0 = (s.match(/0/g) || []).length;
         let s_1 = (s.match(/1/g) || []).length;
         let s_obs = Math.abs(s_1 - s_0) / Math.sqrt(2 * n);
-        if (!(erfc(s_obs) > 0.01)) throw new Error('Frequency (Monobit) Test failed.');
+        if (!(S.erfc(s_obs) > 0.01)) throw new Error('Frequency (Monobit) Test failed.');
 
         // Runs Test
         let pi = s_1 / n;
@@ -149,7 +135,7 @@ module.exports = function (constants, tools) {
         for (let i = 0; i < n - 1; i++) v += (s[i] === s[i + 1]) ? 0 : 1;
         let a = v - 2 * n * pi * (1 - pi);
         let q = 2 * Math.sqrt(2 * n) * pi * (1 - pi);
-        if (!(erfc(Math.abs(a) / q) > 0.01)) throw new Error('Runs Test failed.');
+        if (!(S.erfc(Math.abs(a) / q) > 0.01)) throw new Error('Runs Test failed.');
 
         // Test for the Longest Run of Ones in a Block
         s = [s.substring(0, 128).match(/.{1,8}/g), s.substring(128, 256).match(/.{1,8}/g)];
@@ -186,26 +172,27 @@ module.exports = function (constants, tools) {
             x_sqrt += Math.pow(v[1] - r * pi[1], 2) / (r * pi[1]);
             x_sqrt += Math.pow(v[2] - r * pi[2], 2) / (r * pi[2]);
             x_sqrt += Math.pow(v[3] - r * pi[3], 2) / (r * pi[3]);
-            if (!(igamc(k / 2, x_sqrt / 2) > 0.01)) throw new Error('Test for the Longest Run of Ones in a Block failed.');
+            if (!(S.igamc(k / 2, x_sqrt / 2) > 0.01))
+                throw new Error('Test for the Longest Run of Ones in a Block failed.');
         }
-    }
+    };
 
-    return {
-        generateEntropy: (A = {}) => {
-            defArgs(A, {strength: 256, hex: true, sec256k1Order:true});
+
+    S.generateEntropy = (A = {}) => {
+            ARGS(A, {strength: 256, hex: true, sec256k1Order:true});
             if (!([128, 160, 192, 224, 256].includes(A.strength)))
                 throw new TypeError('strength should be one of the following [128, 160, 192, 224, 256]');
 
-            let b = new tools.Buffer.alloc(32);
+            let b = new S.Buffer.alloc(32);
             let attempt = 0;
-            let order = new BN(constants.ECDSA_SEC256K1_ORDER, 16);
+            let order = new BN(S.ECDSA_SEC256K1_ORDER, 16);
             let p;
             let found;
             do {
                 found = true;
                 attempt += 1;
                 if (attempt > 100) throw new Error('Generate randomness failed');
-                getRandomValues(b);
+                S.getRandomValues(b);
 
                 if (A.sec256k1Order) {
                     p = new BN(b);
@@ -213,15 +200,12 @@ module.exports = function (constants, tools) {
                 }
 
                 try {
-                    randomness_test(b);
+                    S.randomnessTest(b);
                 } catch (e) { found = false; }
             }
             while (!found);
 
             b = b.slice(0,A.strength / 8);
             return A.hex ? b.hex() : b;
-        },
-        igam: igam,
-        igamc: igamc
-    }
+        };
 };

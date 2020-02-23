@@ -134,9 +134,9 @@ const OPCODE = {
 let RAW_OPCODE = {};
 for (let i in OPCODE) RAW_OPCODE[OPCODE[i]] = i;
 
-module.exports = {
-    OPCODE: OPCODE,
-    RAW_OPCODE: RAW_OPCODE
+module.exports = function (S) {
+    S.OPCODE = OPCODE;
+    S.RAW_OPCODE = RAW_OPCODE;
 };
 //
 // RAW_OPCODE = dict((OPCODE[i], i) for i in OPCODE)
