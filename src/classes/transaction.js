@@ -271,7 +271,7 @@ module.exports = function (S) {
 
     Transaction.prototype.addInput = function (A = {}) {
          ARGS(A, {txId: null, vOut: 0, sequence: 0xffffffff,
-            scriptSig: "", txInWitness: null, amount: null,
+            scriptSig: "", txInWitness: null, value: null,
             scriptPubKey: null, address: null, privateKey: null,
             redeemScript: null, inputVerify: true});
         let witness = [], s;
@@ -299,7 +299,7 @@ module.exports = function (S) {
         if ((A.privateKey !== null)&&(!(A.privateKey instanceof S.PrivateKey)))
             A.privateKey = S.PrivateKey(A.privateKey);
 
-        if ((A.amount!==null)&&((A.amount < 0)||(A.amount > S.MAX_AMOUNT)))
+        if ((A.value!==null)&&((A.value < 0)||(A.value > S.MAX_AMOUNT)))
             throw new Error('amount invalid');
 
         if (A.txInWitness !== null) {
@@ -370,12 +370,11 @@ module.exports = function (S) {
             this.segwit = true;
             this.vIn[k].txInWitness = witness
         }
-        if (A.amount !== 0) this.vIn[k].amount = A.amount;
+        if (A.value !== null) this.vIn[k].value = A.value;
         if (A.privateKey !== 0) this.vIn[k].privateKey = A.privateKey;
         if (this.autoCommit) this.commit();
         return this;
     };
-
 
     Transaction.prototype.addOutput = function (A = {}) {
          ARGS(A, {amount: 0, address: null, scriptPubKey: null});
@@ -500,7 +499,7 @@ module.exports = function (S) {
         ARGS(A, {scriptPubKey: null,  sigHashType: S.SIGHASH_ALL, preImage: false});
         if (this.vIn[n] === undefined) throw new Error("input not exist");
         let scriptCode;
-        if (A.scriptPubKey !== undefined) scriptCode = A.scriptPubKey;
+        if (A.scriptPubKey !== null) scriptCode = A.scriptPubKey;
         else {
             if (this.vIn[n].scriptPubKey === undefined) throw new Error("scriptPubKey required");
             scriptCode = this.vIn[n].scriptPubKey;
@@ -578,6 +577,75 @@ module.exports = function (S) {
 
 
 
+    };
+
+    Transaction.prototype.sigHashSegwit = function (n, A = {}) {
+        ARGS(A, {value: null, scriptPubKey: null,  sigHashType: S.SIGHASH_ALL, preImage: false});
+        if (this.vIn[n] === undefined) throw new Error("input not exist");
+        let scriptCode, value;
+
+        if (A.scriptPubKey !== null) scriptCode = A.scriptPubKey;
+        else {
+            if (this.vIn[n].scriptPubKey === undefined) throw new Error("scriptPubKey required");
+            scriptCode = this.vIn[n].scriptPubKey;
+        }
+        scriptCode = getBuffer(scriptCode);
+
+        if (A.value !== null) value = A.value;
+        else {
+            if (this.vIn[n].value === undefined) throw new Error("value required");
+            value = this.vIn[n].value;
+        }
+
+        let hp = [], hs = [], ho = [], outpoint, nSequence;
+
+        for (let i in this.vIn) {
+            i = parseInt(i);
+            let txId = this.vIn[i].txId;
+            if (iS(txId))  txId = s2rh(txId);
+
+            let vOut = BF(S.intToBytes(this.vIn[i].vOut, 4));
+            if (!(A.sigHashType & S.SIGHASH_ANYONECANPAY)) {
+                hp.push(txId);
+                hp.push(vOut);
+                if (((A.sigHashType & 31) !== S.SIGHASH_SINGLE) && ((A.sigHashType&31) !== S.SIGHASH_NONE))
+                    hs.push(BF(S.intToBytes(this.vIn[i].sequence, 4)));
+            }
+            if (i === n) {
+                outpoint = BC([txId, vOut]);
+                nSequence = BF(S.intToBytes(this.vIn[i].sequence, 4));
+            }
+        }
+        let hashPrevouts = (hp.length >0) ? S.doubleSha256(BC(hp)) : BA(32, 0);
+        let hashSequence = (hs.length >0) ? S.doubleSha256(BC(hs)) : BA(32, 0);
+        value = BF(S.intToBytes(value, 8));
+
+        for (let o in this.vOut) {
+            o = parseInt(o);
+            let scriptPubKey = getBuffer(this.vOut[o].scriptPubKey);
+            if (!([S.SIGHASH_SINGLE, S.SIGHASH_NONE].includes(A.sigHashType&31))) {
+                ho.push(BF(S.intToBytes(this.vOut[o].value, 8)));
+                ho.push(BF(S.intToVarInt(scriptPubKey.length)));
+                ho.push(scriptPubKey);
+            }
+            else if (((A.sigHashType&31) === S.SIGHASH_SINGLE) && (n < Object.keys(this.vOut).length)) {
+                if (o === n) {
+                    ho.push(BF(S.intToBytes(this.vOut[o].value, 8)));
+                    ho.push(BF(S.intToVarInt(scriptPubKey.length)));
+                    ho.push(scriptPubKey);
+                }
+            }
+        }
+
+        let hashOutputs = (ho.length > 0) ? S.doubleSha256(BC(ho)) : BA(32,0);
+        let pm = BC([BF(S.intToBytes(this.version, 4)),
+                     hashPrevouts, hashSequence, outpoint, scriptCode,
+                     value, nSequence, hashOutputs,
+                     BF(S.intToBytes(this.lockTime, 4)),
+                     BF(S.intToBytes(A.sigHashType, 4))]);
+
+        if (A.preImage) return (this.format === 'raw')? pm.hex() : pm;
+        return S.doubleSha256(pm, {'hex': this.format !== 'raw'});
     };
 
 
