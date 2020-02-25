@@ -31,6 +31,7 @@ module.exports = function (S) {
                             S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
                         this.testnet = [S.TESTNET_PRIVATE_KEY_COMPRESSED_PREFIX,
                             S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
+
                     }
                 } else {
                     k = BF(k);
@@ -56,8 +57,8 @@ module.exports = function (S) {
             this.compressed = A.compressed;
             this.testnet = A.testnet;
             if (k instanceof PrivateKey) {
-                k = k.wif;
                 A.testnet = k.testnet;
+                k = k.wif;
             }
 
             if (S.isString(k)) {
@@ -100,12 +101,14 @@ module.exports = function (S) {
                 if (S.isWifValid(k)) {
                     this.privateKey = new PrivateKey(k, A);
                     this.publicKey = new PublicKey(this.privateKey, A);
+                    A.testnet = this.privateKey.testnet;
                 }
-                if (S.isHex(k)) k = BF(k, 'hex');
-                else throw new Error('private/public key invalid');
+                else if (S.isHex(k)) k = BF(k, 'hex');
+                else {
+                    throw new Error('private/public key invalid');
+                }
             }
-
-            if (k instanceof PrivateKey) {
+            else if (k instanceof PrivateKey) {
                 this.privateKey = k;
                 A.testnet = k.testnet;
                 A.compressed = k.compressed;
@@ -147,6 +150,7 @@ module.exports = function (S) {
                 this.hash = S.hash160(this.publicKey.key);
             }
             this.hashHex = this.hash.hex();
+            this.testnet = A.testnet;
             this.address = S.hashToAddress(this.hash, {
                 scriptHash: this.scriptHash,
                 witnessVersion: this.witnessVersion, testnet: this.testnet
@@ -181,7 +185,7 @@ module.exports = function (S) {
                 throw new Error('invalid n of m maximum 15 of 15 multisig allowed');
             if (keyList.length !== m)
                 throw new Error('invalid address list count');
-            let s = BF([0x50 + n]);
+            let s = [BF([0x50 + n])];
             for (let k of keyList) {
                 if (S.isString(k)) {
                     if (S.isHex(k)) k = BF(k, 'hex');
@@ -194,9 +198,10 @@ module.exports = function (S) {
 
                 if (k.length === 32) k = S.privateToPublicKey(k);
                 if (k.length !== 33) throw new Error('invalid public key list element size');
-                s = BC([s, S.intToVarInt(k), k]);
+                s.push(BC([BF(S.intToVarInt(k.length)), k]));
             }
-            s = BC([s, BF([0x50 + n, O.OP_CHECKMULTISIG])]);
+            s.push(BF([0x50 + m, O.OP_CHECKMULTISIG]))
+            s = BC(s);
             return new ScriptAddress(s, A);
         }
     }

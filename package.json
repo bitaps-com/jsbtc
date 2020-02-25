@@ -1,6 +1,6 @@
 {
   "name": "jsbtc.js",
-  "version": "v1.0.0-beta.4",
+  "version": "v1.0.0-beta.5",
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
@@ -12,7 +12,6 @@
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "watch:test": "npm t -- -w",
     "test": "mocha test/jsbtc.test.js --require @babel/register ",
-    "test:2": "mocha test/jsbtc.test.js  ",
     "cover": "nyc npm t",
     "prebuild": "rimraf dist",
     "build": "babel --copy-files -d dist --ignore *.test.js src",

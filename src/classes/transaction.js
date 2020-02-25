@@ -4,7 +4,7 @@ module.exports = function (S) {
     let Buffer = S.Buffer;
     let BN = S.BN;
     let isBuffer = S.Buffer.isBuffer;
-    let  ARGS = S.defArgs;
+    let ARGS = S.defArgs;
     let getBuffer = S.getBuffer;
     let BF = Buffer.from;
     let BA = Buffer.alloc;
@@ -14,7 +14,7 @@ module.exports = function (S) {
 
     class Transaction {
         constructor(A = {}) {
-             ARGS(A, {
+            ARGS(A, {
                 rawTx: null, format: 'decoded', version: 1,
                 lockTime: 0, testnet: false, autoCommit: true, keepRawTx: false
             });
@@ -48,6 +48,7 @@ module.exports = function (S) {
             let start = (tx.__offset === undefined) ? 0 : tx.__offset;
             this.version = tx.readInt(4);
             let n = tx.readVarInt();
+
             if (n[0] === 0) {
                 // segwit format
                 sw = 1;
@@ -176,17 +177,16 @@ module.exports = function (S) {
             }
 
 
-
         }
         if (isBuffer(this.data)) this.data = this.data.hex();
         return this;
     };
 
     Transaction.prototype.encode = function () {
-        if  (iS(this.txId)) this.txId = s2rh(this.txId);
-        if  (iS(this.flag)) this.flag = s2rh(this.flag);
-        if  (iS(this.hash)) this.hash = s2rh(this.hash);
-        if  (iS(this.rawTx)) this.rawTx = BF(this.hash, 'hex');
+        if (iS(this.txId)) this.txId = s2rh(this.txId);
+        if (iS(this.flag)) this.flag = s2rh(this.flag);
+        if (iS(this.hash)) this.hash = s2rh(this.hash);
+        if (iS(this.rawTx)) this.rawTx = BF(this.hash, 'hex');
         for (let i in this.vIn) {
             if (iS(this.vIn[i].txId)) this.vIn[i].txId = s2rh(this.vIn[i].txId);
             if (iS(this.vIn[i].scriptSig)) this.vIn[i].scriptSig = BF(this.vIn[i].scriptSig, 'hex');
@@ -220,35 +220,35 @@ module.exports = function (S) {
     };
 
     Transaction.prototype.serialize = function (A = {}) {
-         ARGS(A, {segwit: true, hex: true});
+        ARGS(A, {segwit: true, hex: true});
         let chunks = [];
         chunks.push(BF(S.intToBytes(this.version, 4)));
-        if (A.segwit&&this.segwit) chunks.push(BF([0,1]));
+        if (A.segwit && this.segwit) chunks.push(BF([0, 1]));
         chunks.push(BF(S.intToVarInt(Object.keys(this.vIn).length)));
 
         for (let i in this.vIn) {
             if (iS(this.vIn[i].txId)) chunks.push(s2rh(this.vIn[i].txId));
             else chunks.push(this.vIn[i].txId);
             chunks.push(BF(S.intToBytes(this.vIn[i].vOut, 4)));
-            let s = (iS(this.vIn[i].scriptSig))? BF(this.vIn[i].scriptSig, 'hex'):this.vIn[i].scriptSig;
+            let s = (iS(this.vIn[i].scriptSig)) ? BF(this.vIn[i].scriptSig, 'hex') : this.vIn[i].scriptSig;
 
             chunks.push(BF(S.intToVarInt(s.length)));
             chunks.push(s);
             chunks.push(BF(S.intToBytes(this.vIn[i].sequence, 4)));
-            }
+        }
         chunks.push(BF(S.intToVarInt(Object.keys(this.vOut).length)));
 
         for (let i in this.vOut) {
             chunks.push(BF(S.intToBytes(this.vOut[i].value, 8)));
-            let s = (iS(this.vOut[i].scriptPubKey))? BF(this.vOut[i].scriptPubKey, 'hex'):this.vOut[i].scriptPubKey;
+            let s = (iS(this.vOut[i].scriptPubKey)) ? BF(this.vOut[i].scriptPubKey, 'hex') : this.vOut[i].scriptPubKey;
             chunks.push(BF(S.intToVarInt(s.length)));
             chunks.push(s);
         }
-        if (A.segwit&&this.segwit) {
+        if (A.segwit && this.segwit) {
             for (let i in this.vIn) {
                 chunks.push(BF(S.intToVarInt(this.vIn[i].txInWitness.length)));
                 for (let w of this.vIn[i].txInWitness) {
-                    let s = iS(w)? BF(w, 'hex'): w;
+                    let s = iS(w) ? BF(w, 'hex') : w;
                     chunks.push(BF(S.intToVarInt(s.length)));
                     chunks.push(s);
                 }
@@ -256,7 +256,7 @@ module.exports = function (S) {
         }
         chunks.push(BF(S.intToBytes(this.lockTime, 4)));
         let out = BC(chunks);
-        return (A.hex)? out.hex(): out;
+        return (A.hex) ? out.hex() : out;
     };
 
     Transaction.prototype.json = function () {
@@ -270,49 +270,51 @@ module.exports = function (S) {
     };
 
     Transaction.prototype.addInput = function (A = {}) {
-         ARGS(A, {txId: null, vOut: 0, sequence: 0xffffffff,
+        ARGS(A, {
+            txId: null, vOut: 0, sequence: 0xffffffff,
             scriptSig: "", txInWitness: null, value: null,
             scriptPubKey: null, address: null, privateKey: null,
-            redeemScript: null, inputVerify: true});
+            redeemScript: null, inputVerify: true
+        });
         let witness = [], s;
         if (A.txId === null) {
             A.txId = Buffer(32);
             A.vOut = 0xffffffff;
-            if (((A.sequence !== 0xffffffff)||(Object.keys(this.vOut).length))&&(A.inputVerify))
+            if (((A.sequence !== 0xffffffff) || (Object.keys(this.vOut).length)) && (A.inputVerify))
                 throw new Error('invalid coinbase transaction');
         }
         if (iS(A.txId))
             if (S.isHex(A.txId)) A.txId = s2rh(A.txId);
-            else  throw new Error('txId invalid');
-        if (!isBuffer(A.txId)||A.txId.length !== 32) throw new Error('txId invalid');
+            else throw new Error('txId invalid');
+        if (!isBuffer(A.txId) || A.txId.length !== 32) throw new Error('txId invalid');
 
         if (A.scriptSig.length === 0) A.scriptSig = BF([]);
         if (iS(A.scriptSig))
             if (S.isHex(A.scriptSig)) A.scriptSig = BF(A.scriptSig, 'hex');
-            else  throw new Error('scriptSig invalid');
-        if (!isBuffer(A.scriptSig)||((A.scriptSig.length > 520)&&(A.inputVerify)))
+            else throw new Error('scriptSig invalid');
+        if (!isBuffer(A.scriptSig) || ((A.scriptSig.length > 520) && (A.inputVerify)))
             throw new Error('scriptSig invalid');
 
-        if ((A.vOut<0)||A.vOut>0xffffffff) throw new Error('vOut invalid');
-        if ((A.sequence<0)||A.sequence>0xffffffff) throw new Error('vOut invalid');
+        if ((A.vOut < 0) || A.vOut > 0xffffffff) throw new Error('vOut invalid');
+        if ((A.sequence < 0) || A.sequence > 0xffffffff) throw new Error('vOut invalid');
 
-        if ((A.privateKey !== null)&&(!(A.privateKey instanceof S.PrivateKey)))
+        if ((A.privateKey !== null) && (!(A.privateKey instanceof S.PrivateKey)))
             A.privateKey = S.PrivateKey(A.privateKey);
 
-        if ((A.value!==null)&&((A.value < 0)||(A.value > S.MAX_AMOUNT)))
+        if ((A.value !== null) && ((A.value < 0) || (A.value > S.MAX_AMOUNT)))
             throw new Error('amount invalid');
 
         if (A.txInWitness !== null) {
             let l = 0;
             for (let w of A.txInWitness) {
-                if (iS(w)) witness.push((this.format==='raw')?BF(w,'hex'):w);
-                else witness.push((this.format==='raw')?w:BF(w,'hex'));
-                l+= 1+w.length;
+                if (iS(w)) witness.push((this.format === 'raw') ? BF(w, 'hex') : w);
+                else witness.push((this.format === 'raw') ? w : BF(w, 'hex'));
+                l += 1 + w.length;
             }
         }
 
         if (A.txId.equals(Buffer.alloc(32))) {
-            if (!((A.vOut === 0xffffffff)&&(A.sequence === 0xffffffff)&&(A.scriptSig.length <= 100)))
+            if (!((A.vOut === 0xffffffff) && (A.sequence === 0xffffffff) && (A.scriptSig.length <= 100)))
                 if (A.inputVerify) throw new Error("coinbase tx invalid");
             this.coinbase = true;
         }
@@ -334,7 +336,7 @@ module.exports = function (S) {
                 s = S.addressToScript(A.address);
             } else if (A.address.address !== undefined) s = S.addressToScript(A.address.address);
             else throw new Error("address invalid");
-            if (A.scriptPubKey !== undefined) {
+            if (A.scriptPubKey !== null) {
                 if (!A.scriptPubKey.equals(s)) throw new Error("address not match script");
             } else A.scriptPubKey = s;
 
@@ -353,16 +355,16 @@ module.exports = function (S) {
             this.vIn[k].txId = rh2s(A.txId);
             this.vIn[k].scriptSig = A.scriptSig.hex();
             this.vIn[k].scriptSigOpcodes = S.decodeScript(A.scriptSig);
-            this.vIn[k].scriptSigAsm = S.decodeScript(A.scriptSig, {asm:true});
+            this.vIn[k].scriptSigAsm = S.decodeScript(A.scriptSig, {asm: true});
             if (A.scriptPubKey !== null) {
                 this.vIn[k].scriptPubKey = A.scriptPubKey.hex();
                 this.vIn[k].scriptPubKeyOpcodes = S.decodeScript(A.scriptPubKey);
-                this.vIn[k].scriptPubKeyAsm = S.decodeScript(A.scriptPubKey, {asm:true});
+                this.vIn[k].scriptPubKeyAsm = S.decodeScript(A.scriptPubKey, {asm: true});
             }
             if (A.redeemScript !== null) {
-                this.vIn[k].redeemScript = A.redeemScript;
+                this.vIn[k].redeemScript = A.redeemScript.hex();
                 this.vIn[k].redeemScriptOpcodes = S.decodeScript(A.redeemScript);
-                this.vIn[k].redeemScriptAsm = S.decodeScript(A.redeemScript, {asm:true});
+                this.vIn[k].redeemScriptAsm = S.decodeScript(A.redeemScript, {asm: true});
             }
         }
 
@@ -377,23 +379,23 @@ module.exports = function (S) {
     };
 
     Transaction.prototype.addOutput = function (A = {}) {
-         ARGS(A, {amount: 0, address: null, scriptPubKey: null});
+        ARGS(A, {value: 0, address: null, scriptPubKey: null});
         if ((A.address === null) && (A.scriptPubKey === null))
             throw new Error("unable to add output, address or script required");
-        if ((A.amount < 0) || (A.amount > S.MAX_AMOUNT)) throw new Error(" amount value error");
+        if ((A.value < 0) || (A.value > S.MAX_AMOUNT)) throw new Error(" amount value error");
         if (A.scriptPubKey !== null)
             if (iS(A.scriptPubKey)) A.scriptPubKey = BF(A.scriptPubKey, 'hex');
-        else if (A.address !== null)
-            if (A.address.address !== undefined) A.address = A.address.address;
+            else if (A.address !== null)
+                if (A.address.address !== undefined) A.address = A.address.address;
         if (A.address !== null)
             A.scriptPubKey = S.addressToScript(A.address);
 
 
         let k = Object.keys(this.vOut).length;
         this.vOut[k] = {};
-        this.vOut[k].value = A.amount;
+        this.vOut[k].value = A.value;
 
-        let s = S.parseScript(A.scriptPubKey, {segwit: this.segwit===true})
+        let s = S.parseScript(A.scriptPubKey, {segwit: this.segwit === true})
         this.vOut[k].nType = s.nType;
         this.vOut[k].type = s.type;
 
@@ -404,8 +406,7 @@ module.exports = function (S) {
                 this.vOut[k].addressHash = s.addressHash;
                 this.vOut[k].reqSigs = s.reqSigs;
             }
-        }
-        else {
+        } else {
             this.vOut[k].scriptPubKey = A.scriptPubKey.hex();
             if ((this.data === null) && (s.nType === 3)) this.data = s.data.hex();
             if (!([3, 4, 7, 8].includes(s.nType))) {
@@ -414,8 +415,8 @@ module.exports = function (S) {
             }
             this.vOut[k].scriptPubKeyOpcodes = S.decodeScript(A.scriptPubKey);
             this.vOut[k].scriptPubKeyAsm = S.decodeScript(A.scriptPubKey, {"asm": true});
-            let sh = [1,5].includes(s.nType);
-            let witnessVersion = (s.nType < 5)? null: A.scriptPubKey[0];
+            let sh = [1, 5].includes(s.nType);
+            let witnessVersion = (s.nType < 5) ? null : A.scriptPubKey[0];
             if (this.vOut[k].addressHash !== undefined)
                 this.vOut[k].address = S.hashToAddress(this.vOut[k].addressHash,
                     {testnet: this.testnet, scriptHash: sh, witnessVersion: witnessVersion});
@@ -426,11 +427,11 @@ module.exports = function (S) {
 
     Transaction.prototype.delOutput = function (n) {
         let l = Object.keys(this.vOut).length;
-        if   (l === 0) return this;
+        if (l === 0) return this;
         if (n === undefined) n = l - 1;
         let out = {};
         let c = 0;
-        for (let i = 0; i < l;  i++) {
+        for (let i = 0; i < l; i++) {
             if (i !== n) {
                 out[c] = this.vOut[i];
                 c++;
@@ -443,11 +444,11 @@ module.exports = function (S) {
 
     Transaction.prototype.delInput = function (n) {
         let l = Object.keys(this.vIn).length;
-        if   (l === 0) return this;
+        if (l === 0) return this;
         if (n === undefined) n = l - 1;
         let out = {};
         let c = 0;
-        for (let i = 0; i < l;  i++) {
+        for (let i = 0; i < l; i++) {
             if (i !== n) {
                 out[c] = this.vIn[i];
                 c++;
@@ -462,7 +463,7 @@ module.exports = function (S) {
         if ((Object.keys(this.vIn).length === 0) || (Object.keys(this.vOut).length === 0)) return this;
 
         if (this.segwit)
-            for (let i in this.vIn)  if (this.vIn[i].txInWitness === undefined) this.vIn[i].txInWitness = [];
+            for (let i in this.vIn) if (this.vIn[i].txInWitness === undefined) this.vIn[i].txInWitness = [];
         let nonSegwitView = this.serialize({segwit: false, hex: false});
         this.txId = S.doubleSha256(nonSegwitView);
         this.rawTx = this.serialize({segwit: true, hex: false});
@@ -470,7 +471,7 @@ module.exports = function (S) {
         this.size = this.rawTx.length;
         this.bSize = nonSegwitView.length;
         this.weight = this.bSize * 3 + this.size;
-        this.vSize = Math.ceil(this.weight/4);
+        this.vSize = Math.ceil(this.weight / 4);
 
         if (this.format !== 'raw') {
             this.txId = rh2s(this.txId);
@@ -490,13 +491,13 @@ module.exports = function (S) {
                 if (this.vOut[i].value !== undefined) outputSum += this.vOut[i].value;
         }
         this.amount = outputSum;
-        if (outputSum&&inputSum) this.fee = inputSum - outputSum;
+        if (outputSum && inputSum) this.fee = inputSum - outputSum;
         else this.fee = null;
-        return  this;
+        return this;
     };
 
     Transaction.prototype.sigHash = function (n, A = {}) {
-        ARGS(A, {scriptPubKey: null,  sigHashType: S.SIGHASH_ALL, preImage: false});
+        ARGS(A, {scriptPubKey: null, sigHashType: S.SIGHASH_ALL, preImage: false});
         if (this.vIn[n] === undefined) throw new Error("input not exist");
         let scriptCode;
         if (A.scriptPubKey !== null) scriptCode = A.scriptPubKey;
@@ -513,13 +514,13 @@ module.exports = function (S) {
 
         scriptCode = S.deleteFromScript(scriptCode, BF([O.OP_CODESEPARATOR]));
         let pm = [BF(S.intToBytes(this.version, 4))];
-        pm.push((A.sigHashType & S.SIGHASH_ANYONECANPAY) ? BF([1]): BF(S.intToVarInt( Object.keys(this.vIn).length)));
+        pm.push((A.sigHashType & S.SIGHASH_ANYONECANPAY) ? BF([1]) : BF(S.intToVarInt(Object.keys(this.vIn).length)));
 
         for (let i in this.vIn) {
             i = parseInt(i);
             if ((A.sigHashType & S.SIGHASH_ANYONECANPAY) && (n !== i)) continue;
             let sequence = this.vIn[i].sequence;
-            if (([S.SIGHASH_SINGLE, S.SIGHASH_NONE].includes(A.sigHashType&31)) && (n !== i)) sequence = 0;
+            if (([S.SIGHASH_SINGLE, S.SIGHASH_NONE].includes(A.sigHashType & 31)) && (n !== i)) sequence = 0;
             let txId = iS(this.vIn[i].txId) ? s2rh(this.vIn[i].txId) : this.vIn[i].txId;
             pm.push(txId);
             pm.push(BF(S.intToBytes(this.vIn[i].vOut, 4)));
@@ -545,42 +546,29 @@ module.exports = function (S) {
                 scriptPubKey = this.vOut[i].scriptPubKey;
                 scriptPubKey = iS(scriptPubKey) ? BF(scriptPubKey, 'hex') : scriptPubKey;
 
-                if ((i>n)&&( (A.sigHashType & 31) === S.SIGHASH_SINGLE)) continue;
+                if ((i > n) && ((A.sigHashType & 31) === S.SIGHASH_SINGLE)) continue;
                 if (((A.sigHashType & 31) === S.SIGHASH_SINGLE) && (n !== i)) {
-                    pm.push(BA(8,0xff));
-                    pm.push(BA(1,0x00));
-                }
-                else {
+                    pm.push(BA(8, 0xff));
+                    pm.push(BA(1, 0x00));
+                } else {
                     pm.push(BF(S.intToBytes(this.vOut[i].value, 8)));
                     pm.push(BF(S.intToVarInt(scriptPubKey.length)));
                     pm.push(scriptPubKey);
                 }
             }
         }
-
         pm.push(BF(S.intToBytes(this.lockTime, 4)));
         pm.push(BF(S.intToBytes(A.sigHashType, 4)));
         pm = BC(pm);
         if (!A.preImage) {
             pm = S.doubleSha256(pm);
-            return (this.format==='raw')?pm: rh2s(pm);
+            return (this.format === 'raw') ? pm : rh2s(pm);
         }
-        return (this.format==='raw')?pm: pm.hex();
-
-
-
-
-
-
-
-
-
-
-
+        return (this.format === 'raw') ? pm : pm.hex();
     };
 
     Transaction.prototype.sigHashSegwit = function (n, A = {}) {
-        ARGS(A, {value: null, scriptPubKey: null,  sigHashType: S.SIGHASH_ALL, preImage: false});
+        ARGS(A, {value: null, scriptPubKey: null, sigHashType: S.SIGHASH_ALL, preImage: false});
         if (this.vIn[n] === undefined) throw new Error("input not exist");
         let scriptCode, value;
 
@@ -602,13 +590,13 @@ module.exports = function (S) {
         for (let i in this.vIn) {
             i = parseInt(i);
             let txId = this.vIn[i].txId;
-            if (iS(txId))  txId = s2rh(txId);
+            if (iS(txId)) txId = s2rh(txId);
 
             let vOut = BF(S.intToBytes(this.vIn[i].vOut, 4));
             if (!(A.sigHashType & S.SIGHASH_ANYONECANPAY)) {
                 hp.push(txId);
                 hp.push(vOut);
-                if (((A.sigHashType & 31) !== S.SIGHASH_SINGLE) && ((A.sigHashType&31) !== S.SIGHASH_NONE))
+                if (((A.sigHashType & 31) !== S.SIGHASH_SINGLE) && ((A.sigHashType & 31) !== S.SIGHASH_NONE))
                     hs.push(BF(S.intToBytes(this.vIn[i].sequence, 4)));
             }
             if (i === n) {
@@ -616,19 +604,18 @@ module.exports = function (S) {
                 nSequence = BF(S.intToBytes(this.vIn[i].sequence, 4));
             }
         }
-        let hashPrevouts = (hp.length >0) ? S.doubleSha256(BC(hp)) : BA(32, 0);
-        let hashSequence = (hs.length >0) ? S.doubleSha256(BC(hs)) : BA(32, 0);
+        let hashPrevouts = (hp.length > 0) ? S.doubleSha256(BC(hp)) : BA(32, 0);
+        let hashSequence = (hs.length > 0) ? S.doubleSha256(BC(hs)) : BA(32, 0);
         value = BF(S.intToBytes(value, 8));
 
         for (let o in this.vOut) {
             o = parseInt(o);
             let scriptPubKey = getBuffer(this.vOut[o].scriptPubKey);
-            if (!([S.SIGHASH_SINGLE, S.SIGHASH_NONE].includes(A.sigHashType&31))) {
+            if (!([S.SIGHASH_SINGLE, S.SIGHASH_NONE].includes(A.sigHashType & 31))) {
                 ho.push(BF(S.intToBytes(this.vOut[o].value, 8)));
                 ho.push(BF(S.intToVarInt(scriptPubKey.length)));
                 ho.push(scriptPubKey);
-            }
-            else if (((A.sigHashType&31) === S.SIGHASH_SINGLE) && (n < Object.keys(this.vOut).length)) {
+            } else if (((A.sigHashType & 31) === S.SIGHASH_SINGLE) && (n < Object.keys(this.vOut).length)) {
                 if (o === n) {
                     ho.push(BF(S.intToBytes(this.vOut[o].value, 8)));
                     ho.push(BF(S.intToVarInt(scriptPubKey.length)));
@@ -637,16 +624,373 @@ module.exports = function (S) {
             }
         }
 
-        let hashOutputs = (ho.length > 0) ? S.doubleSha256(BC(ho)) : BA(32,0);
+        let hashOutputs = (ho.length > 0) ? S.doubleSha256(BC(ho)) : BA(32, 0);
         let pm = BC([BF(S.intToBytes(this.version, 4)),
-                     hashPrevouts, hashSequence, outpoint, scriptCode,
-                     value, nSequence, hashOutputs,
-                     BF(S.intToBytes(this.lockTime, 4)),
-                     BF(S.intToBytes(A.sigHashType, 4))]);
+            hashPrevouts, hashSequence, outpoint, scriptCode,
+            value, nSequence, hashOutputs,
+            BF(S.intToBytes(this.lockTime, 4)),
+            BF(S.intToBytes(A.sigHashType, 4))]);
 
-        if (A.preImage) return (this.format === 'raw')? pm.hex() : pm;
+        if (A.preImage) return (this.format === 'raw') ? pm.hex() : pm;
         return S.doubleSha256(pm, {'hex': this.format !== 'raw'});
     };
+
+    Transaction.prototype.signInput = function (n, A = {}) {
+        ARGS(A, {
+            privateKey: null, scriptPubKey: null, redeemScript: null,
+            sigHashType: S.SIGHASH_ALL, address: null, value: null,
+            witnessVersion: 0, p2sh_p2wsh: false
+        });
+        if (this.vIn[n] === undefined) throw new Error('input not exist');
+        // privateKey
+        if (A.privateKey === null) {
+            if (this.vIn[n].privateKey === undefined) throw new Error('no private key');
+            A.privateKey = this.vIn[n].privateKey
+        }
+
+        if (A.privateKey instanceof Array) {
+            A.publicKey = [];
+            let pk = [];
+            for (let key of A.privateKey) {
+                if (key.key !== undefined) key = key.wif;
+                A.publicKey.push(S.privateToPublicKey(key, {hex: false}));
+                pk.push(new S.PrivateKey(key).key);
+            }
+            A.privateKey = pk;
+        } else {
+            A.privateKey = (A.privateKey.key === undefined) ? new S.PrivateKey(A.privateKey).key: A.privateKey.key;
+            A.publicKey = [S.privateToPublicKey(A.privateKey, {hex: false})];
+            A.privateKey = [A.privateKey];
+        }
+
+        // address
+
+        if ((A.address === null)&&(this.vIn[n].address !== undefined))  A.address = this.vIn[n].address;
+        if (A.address !== null) {
+            if (A.address.address !== undefined) A.address = A.address.address;
+
+            if (this.testnet !== (S.addressNetType(A.address) === 'testnet'))
+                throw new Error('address network invalid');
+            A.scriptPubKey = S.addressToScript(A.address);
+        }
+
+        let scriptType = null;
+
+        // redeem script
+        if ((A.redeemScript === null)&&(this.vIn[n].redeemScript !== undefined))  A.redeemScript = this.vIn[n].redeemScript;
+        if (A.redeemScript !== null)  A.redeemScript = getBuffer(A.redeemScript);
+
+        // script pub key
+        if ((A.scriptPubKey === null)&&(this.vIn[n].scriptPubKey !== undefined))
+            A.scriptPubKey = this.vIn[n].scriptPubKey;
+        else if ((A.scriptPubKey === null)&&(A.redeemScript === null)) throw new Error('no scriptPubKey key');
+
+
+        if (A.scriptPubKey !== null) {
+            A.scriptPubKey = getBuffer(A.scriptPubKey);
+
+            let p = S.parseScript(A.scriptPubKey);
+            scriptType = p.type;
+            if ([5,6].includes(p.nType)) A.witnessVersion = A.scriptPubKey[0];
+        } else if (A.redeemScript !== null) {
+            if ((A.witnessVersion === null)||(A.p2sh_p2wsh)) scriptType = "P2SH";
+            else scriptType = "P2WSH";
+        }
+
+        // sign input
+        let sigSript;
+        switch (scriptType) {
+            case 'PUBKEY':
+                sigSript = this.__sign_PUBKEY(n, A);
+                break;
+            case 'P2PKH':
+                sigSript = this.__sign_P2PKH(n, A);
+                break;
+            case 'P2SH':
+                sigSript = this.__sign_P2SH(n, A);
+                break;
+            case 'P2WPKH':
+                sigSript = this.__sign_P2WPKH(n, A);
+                break;
+            case 'P2WSH':
+                sigSript = this.__sign_P2WSH(n, A);
+                break;
+            case 'MULTISIG':
+                sigSript = this.__sign_MULTISIG(n, A);
+                break;
+            default:
+                throw new Error('not implemented');
+        }
+
+        if (this.format === 'raw') this.vIn[n].scriptSig = sigSript;
+        else {
+            this.vIn[n].scriptSig = sigSript.hex();
+            this.vIn[n].scriptSigOpcodes = S.decodeScript(sigSript);
+            this.vIn[n].scriptSigAsm = S.decodeScript(sigSript, {asm: true});
+        }
+        if (this.autoCommit) this.commit();
+        return this;
+    };
+
+    Transaction.prototype.__sign_PUBKEY = function (n, A) {
+        let sighash = this.sigHash(n, A);
+        if (iS(sighash)) sighash = s2rh(sighash);
+
+        let signature = BC([S.signMessage(sighash, A.privateKey[0]).signature,
+            BF(S.intToBytes(A.sigHashType, 1))]);
+        if (this.format === 'raw')  this.vIn[n].signatures = [signature];
+        else this.vIn[n].signatures = [signature.hex()];
+        return BC([BF([signature.length]), signature]);
+    };
+
+    Transaction.prototype.__sign_P2PKH = function (n, A) {
+        let sighash = this.sigHash(n, A);
+        if (iS(sighash)) sighash = s2rh(sighash);
+        let signature = BC([S.signMessage(sighash, A.privateKey[0]).signature, BF(S.intToBytes(A.sigHashType, 1))]);
+        if (this.format === 'raw')  this.vIn[n].signatures = [signature];
+        else this.vIn[n].signatures = [signature.hex()];
+        return BC([BF([signature.length]), signature, BF([A.publicKey[0].length]), A.publicKey[0]]);
+    };
+
+    Transaction.prototype.__sign_P2SH = function (n, A) {
+        if (A.redeemScript === null) throw new Error('no redeem script');
+        if (A.p2sh_p2wsh) return this.__sign_P2SH_P2WSH(n, A);
+        let scriptType = S.parseScript(A.redeemScript)["type"];
+        switch (scriptType) {
+            case 'MULTISIG':
+                return this.__sign_P2SH_MULTISIG(n, A);
+            case 'P2WPKH':
+                return this.__sign_P2SH_P2WPKH(n, A);
+            default:
+                throw new Error('not implemented');
+        }
+    };
+
+    Transaction.prototype.__sign_P2SH_MULTISIG = function (n, A) {
+        let sighash = this.sigHash(n, {scriptPubKey: A.redeemScript, sigHashType: A.sigHashType});
+
+        if (iS(sighash)) sighash = s2rh(sighash);
+        let sig = [];
+        this.vIn[n].signatures = [];
+        for (let key of A.privateKey) {
+            let s = BC([S.signMessage(sighash, key).signature,  BF(S.intToBytes(A.sigHashType, 1))]);
+            sig.push(s);
+            this.vIn[n].signatures.push((this.format === 'raw') ? s : s.hex());
+        }
+        return this.__get_MULTISIG_scriptSig(n, A.publicKey,
+            sig, A.redeemScript, A.redeemScript);
+    };
+
+    Transaction.prototype.__sign_P2SH_P2WPKH = function (n, A) {
+        let s = BC([BF([0x19]), BF([O.OP_DUP, O.OP_HASH160]),
+                   S.opPushData(S.hash160(A.publicKey[0])), BF([O.OP_EQUALVERIFY, O.OP_CHECKSIG])]);
+        if (A.value === null) {
+            if (this.vIn[n].value !== undefined) A.value = this.vIn[n].value;
+            else throw new Error('no input amount');
+        }
+
+        let sighash = this.sigHashSegwit(n, {scriptPubKey: s, sigHashType: A.sigHashType, value: A.value});
+        sighash = getBuffer(sighash);
+        let signature = BC([S.signMessage(sighash, A.privateKey[0]).signature, BF(S.intToBytes(A.sigHashType, 1))]);
+        this.segwit = true;
+        if (this.format === 'raw') this.vIn[n].txInWitness = [signature, A.publicKey[0]];
+        else this.vIn[n].txInWitness = [signature.hex(), A.publicKey[0].hex()];
+        this.vIn[n].signatures = (this.format === 'raw') ? [signature] : [signature.hex()];
+        return S.opPushData(A.redeemScript);
+    };
+
+    Transaction.prototype.__sign_P2SH_P2WSH = function (n, A) {
+        let scriptType = S.parseScript(A.redeemScript)["type"];
+        switch (scriptType) {
+            case 'MULTISIG':
+                return this.__sign_P2SH_P2WSH_MULTISIG(n, A);
+            default:
+                throw new Error('not implemented');
+        }
+    };
+
+    Transaction.prototype.__sign_P2SH_P2WSH_MULTISIG = function (n, A) {
+        this.segwit = true;
+        let scriptCode = BC([BF(S.intToVarInt(A.redeemScript.length)), A.redeemScript]);
+        let sighash = this.sigHashSegwit(n, {scriptPubKey: scriptCode,
+            sigHashType: A.sigHashType, value: A.value});
+        sighash = getBuffer(sighash);
+        this.vIn[n].signatures = [];
+        let sig = [];
+        for (let key of A.privateKey) {
+            let s = BC([S.signMessage(sighash, key).signature,  BF(S.intToBytes(A.sigHashType, 1))]);
+            sig.push(s);
+            this.vIn[n].signatures.push((this.format === 'raw') ? s : s.hex());
+        }
+        let witness =  this.__get_MULTISIG_scriptSig(n, A.publicKey, sig, scriptCode, A.redeemScript, A.value);
+        if (this.format === 'raw') this.vIn[n].txInWitness = witness;
+        else {
+            this.vIn[n].txInWitness = [];
+            for (let w of witness) this.vIn[n].txInWitness.push(w.hex());
+        }
+        // calculate P2SH redeem script from P2WSH redeem script
+        return S.opPushData(BC([BF([0]), S.opPushData(S.sha256(A.redeemScript))]))
+    };
+
+    Transaction.prototype.__sign_P2WPKH = function (n, A) {
+        let s = BC([BF([0x19]), BF([O.OP_DUP, O.OP_HASH160]), A.scriptPubKey.slice(1),
+                BF([O.OP_EQUALVERIFY, O.OP_CHECKSIG])]);
+        if (A.value === null) {
+            if (this.vIn[n].value !== undefined) A.value = this.vIn[n].value;
+            else throw new Error('no input amount');
+        }
+        let sighash = this.sigHashSegwit(n, {scriptPubKey: s, sigHashType: A.sigHashType, value: A.value});
+        sighash = getBuffer(sighash);
+        let signature = BC([S.signMessage(sighash, A.privateKey[0]).signature, BF(S.intToBytes(A.sigHashType, 1))]);
+        this.segwit = true;
+        if (this.format === 'raw') this.vIn[n].txInWitness = [signature, A.publicKey[0]];
+        else this.vIn[n].txInWitness = [signature.hex(), A.publicKey[0].hex()];
+        this.vIn[n].signatures = (this.format === 'raw') ? [signature] : [signature.hex()];
+        return BF([]);
+    };
+
+    Transaction.prototype.__sign_P2WSH = function (n, A) {
+        this.segwit = true;
+        if (A.value === null) {
+            if (this.vIn[n].value !== undefined) A.value = this.vIn[n].value;
+            else throw new Error('no input amount');
+        }
+        let scriptType = S.parseScript(A.redeemScript)["type"];
+        switch (scriptType) {
+            case 'MULTISIG':
+                return this.__sign_P2WSH_MULTISIG(n, A);
+            default:
+                throw new Error('not implemented');
+        }
+    };
+
+    Transaction.prototype.__sign_P2WSH_MULTISIG = function (n, A) {
+        let scriptCode = BC([BF(S.intToVarInt(A.redeemScript.length)), A.redeemScript]);
+
+        let sighash = this.sigHashSegwit(n, {scriptPubKey: scriptCode,
+            sigHashType: A.sigHashType, value: A.value});
+        sighash = getBuffer(sighash);
+        let sig = [];
+        this.vIn[n].signatures = [];
+        for (let key of A.privateKey) {
+            let s = BC([S.signMessage(sighash, key).signature,  BF(S.intToBytes(A.sigHashType, 1))]);
+            sig.push(s);
+            this.vIn[n].signatures.push((this.format === 'raw') ? s : s.hex());
+        }
+
+        let witness =  this.__get_MULTISIG_scriptSig(n, A.publicKey, sig, scriptCode, A.redeemScript, A.value);
+        if (this.format === 'raw') this.vIn[n].txInWitness = witness;
+        else {
+            this.vIn[n].txInWitness = [];
+            for (let w of witness) this.vIn[n].txInWitness.push(w.hex());
+        }
+        return BF([]);
+    };
+
+    Transaction.prototype.__sign_MULTISIG = function (n, A) {
+        let sighash = this.sigHash(n, {scriptPubKey: A.scriptPubKey, sigHashType: A.sigHashType});
+        if (iS(sighash)) sighash = s2rh(sighash);
+        let sig = [];
+        this.vIn[n].signatures = [];
+        for (let key of A.privateKey) {
+            let s = BC([S.signMessage(sighash, key).signature,  BF(S.intToBytes(A.sigHashType, 1))]);
+            sig.push(s);
+            this.vIn[n].signatures.push((this.format === 'raw') ? s : s.hex());
+        }
+        return this.__get_bare_multisig_script_sig__(n, A.publicKey,
+            sig, A.scriptPubKey);
+    };
+
+    Transaction.prototype.__get_bare_multisig_script_sig__ = function (n, publicKeys, signatures, scriptPubKey) {
+        let sigMap = {};
+        for (let i in publicKeys)  sigMap[publicKeys[i]] = signatures[i];
+        scriptPubKey.seek(0);
+        let pubKeys = S.getMultiSigPublicKeys(scriptPubKey);
+        let s = getBuffer(this.vIn[n].scriptSig);
+        s.seek(0);
+        let r = S.readOpCode(s);
+        while (r[0] !== null) {
+            r = S.readOpCode(s);
+            if ((r[1] !== null) && S.isValidSignatureEncoding(r[1])) {
+                let sigHash = this.sigHash(n, {scriptPubKey: scriptPubKey, sigHashType: r[1][r[1].length - 1]});
+                if (iS(sigHash)) sigHash = s2rh(sigHash);
+                for (let i =0; i<4; i++) {
+                    let pk = S.publicKeyRecovery(r[1].slice(0, r[1].length - 1), sigHash, i,  {hex: false});
+                    if (pk === null) continue;
+                    for (let p of  pubKeys)
+                        if (pk.equals(p)) {
+                            sigMap[pk] = r[1];
+                            break;
+                        }
+                }
+            }
+        }
+        r =[BF([O.OP_0])];
+        for (let p of pubKeys)
+            if (sigMap[p] !== undefined) r.push(S.opPushData(sigMap[p]));
+        return BC(r);
+    };
+
+    Transaction.prototype.__get_MULTISIG_scriptSig = function (n, publicKeys, signatures, scriptCode,
+                                                               redeemScript, value = null) {
+    let sigMap = {};
+    for (let i in publicKeys)  sigMap[publicKeys[i]] = signatures[i];
+    redeemScript.seek(0);
+    let pubKeys = S.getMultiSigPublicKeys(redeemScript);
+    let p2wsh = (value !== null);
+    if (!p2wsh) {
+        let s = getBuffer(this.vIn[n].scriptSig);
+        s.seek(0);
+        let r = S.readOpCode(s);
+        while (r[0] !== null) {
+            r = S.readOpCode(s);
+            if ((r[1] !== null) && S.isValidSignatureEncoding(r[1])) {
+                let sigHash = this.sigHash(n, {scriptPubKey: scriptCode, sigHashType: r[1][r[1].length - 1]});
+                if (iS(sigHash)) sigHash = s2rh(sigHash);
+                for (let i =0; i<4; i++) {
+                    let pk = S.publicKeyRecovery(r[1].slice(0, r[1].length - 1), sigHash, i,  {hex: false});
+                    if (pk === null) continue;
+                    for (let p of  pubKeys)
+                        if (pk.equals(p)) {
+                            sigMap[pk] = r[1];
+                            break;
+                        }
+                }
+            }
+        }
+        r =[BF([O.OP_0])];
+        for (let p of pubKeys)
+            if (sigMap[p] !== undefined) r.push(S.opPushData(sigMap[p]));
+
+        r.push(S.opPushData(redeemScript));
+        return BC(r);
+    }
+    if (this.vIn[n].txInWitness !== undefined)
+        for (let w of this.vIn[n].txInWitness) {
+            w = getBuffer(w);
+            if ((w.length > 0) && (S.isValidSignatureEncoding(w))) {
+                let sigHash = this.sigHashSegwit(n, {scriptPubKey: scriptCode,
+                    sigHashType: w[w.length - 1], value: value});
+                sigHash = getBuffer(sigHash);
+                for (let i =0; i<4; i++) {
+                    let pk = S.publicKeyRecovery(w.slice(0, w.length - 1), sigHash, i,  {hex: false});
+                    if (pk === null) continue;
+                    for (let p of  pubKeys)
+                        if (pk.equals(p)) {
+                            sigMap[pk] = w;
+                            break;
+                        }
+                }
+            }
+        }
+
+    let r = [BF([])];
+    for (let p of pubKeys)
+        if (sigMap[p] !== undefined) r.push(sigMap[p]);
+    r.push(redeemScript);
+    return r;
+};
+
 
 
     S.Transaction = Transaction;
