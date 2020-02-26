@@ -118,6 +118,177 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(igamc(8.11261940, 4.05857957) - 0.95010562492501993148 < q, true);
             equal(igamc(1.34835811, 6.64708856) - 0.00295250273836756942 < q, true);
         });
+        it('Entropy <-> mnemonic', () => {
+            let m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
+                   'point skate life truly hockey scout assault lab impulse boss';
+            let e = "ff46716c20b789aff26b59a27b74716699457f29d650815d2db1e0a0d8f81c88";
+            equal(entropyToMnemonic(e), m);
+            equal(mnemonicToEntropy(m), e);
+            for (let i = 0; i< 1000;i++) {
+                let e = generateEntropy();
+                let m = entropyToMnemonic(e);
+                equal(mnemonicToEntropy(m), e);
+            }
+
+            e = "000000717ded6e3da64ad190e524dcdd0980099415b7a878d13fdd7583ff4da9";
+            m = entropyToMnemonic(e);
+            equal(mnemonicToEntropy(m), e);
+            e = "000000007ded6e3da64ad190e524dcdd0980099415b7a878d13fdd7583000000";
+            m = entropyToMnemonic(e);
+            equal(mnemonicToEntropy(m), e);
+
+            m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+            e = '61dda75bc2c63fa6747a500ddab20358';
+
+            equal(entropyToMnemonic(e), m);
+            equal(mnemonicToEntropy(m), e);
+
+            for (let i = 0; i< 1000;i++) {
+                let e = generateEntropy({strength: 128});
+                let m = entropyToMnemonic(e);
+                equal(mnemonicToEntropy(m), e);
+            }
+            for (let i = 0; i< 1000;i++) {
+                let e = generateEntropy({strength: 160});
+                let m = entropyToMnemonic(e);
+                equal(mnemonicToEntropy(m), e);
+            }
+            for (let i = 0; i< 1000;i++) {
+                let e = generateEntropy({strength: 192});
+                let m = entropyToMnemonic(e);
+                equal(mnemonicToEntropy(m), e);
+            }
+            for (let i = 0; i< 1000;i++) {
+                let e = generateEntropy({strength: 224});
+                let m = entropyToMnemonic(e);
+                equal(mnemonicToEntropy(m), e);
+            }
+
+        }).timeout(10000);
+
+        it('isMnemonicCheckSumValid', () => {
+            let m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicCheckSumValid(m), true);
+            m = 'gift gift gift machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicCheckSumValid(m), false);
+            m = 'gift gift street machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicCheckSumValid(m), false)
+            m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
+                'point skate life truly hockey scout assault lab impulse boss';
+            equal(isMnemonicCheckSumValid(m), true);
+            m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
+                'point skate life forcet hockey scout assault lab impulse boss';
+            equal(isMnemonicCheckSumValid(m), false);
+        });
+
+        it('isMnemonicValid', () => {
+            let m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicValid(m), true);
+            m = 'gift gift gift machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicValid(m), true);
+            m = 'gift gift streety machine glue spring spin energy assist stereo liar ramp';
+            equal(isMnemonicValid(m), false)
+        });
+
+        it('splitMnemonic + combineMnemonic', () => {
+            let m = entropyToMnemonic(generateEntropy());
+            let s = splitMnemonic(3, 5, m);
+            equal(m, combineMnemonic(s));
+
+            for (let q = 0; q < 50; q++) {
+                let t =  Math.floor(Math.random() * (10  )) + 2;
+                let i =  Math.floor(Math.random() * (t - 2 )) + 2;
+                let m = entropyToMnemonic(generateEntropy());
+                let shares = splitMnemonic(i, t, m);
+                let s = {};
+                let q = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                if (q<i) q = i;
+                do {
+                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+
+                    s[i] = shares[i];
+                } while (Object.keys(s).length < i);
+                let m2 = combineMnemonic(s);
+                equal(m, m2);
+            }
+        });
+    }).timeout(10000);;
+
+    describe("Shamir secret sharing functions:", function () {
+
+        it('GF256 field math', () => {
+            for (let i = 1; i < 256; i++) equal(1, __GF256_mul(i, __GF256_inverse(i)));
+
+            for (let i = 1; i < 256; i++)
+                for (let j = 1; j < 256; j++) {
+                    let a = __GF256_div(i, j);
+                    let b = __GF256_mul(a, j);
+                    equal(i, b);
+                    a = __GF256_add(i, j);
+                    b = __GF256_sub(a, j);
+                    equal(i, b);
+                }
+
+            let k = 2;
+            for (let i = 2; i < 256; i++) {
+                let a = __GF256_pow(k, i);
+                let b = k;
+                for (let j = 0; j < i-1; j++) b = __GF256_mul(b, k);
+                equal(b, a);
+            }
+
+        });
+
+        it('Secret splitting', () => {
+            let secret = Buffer.from("w", 'utf8');
+            for (let i = 0 ; i < 1000; i++) {
+                let shares = __split_secret(5, 5, secret);
+                let s = __restore_secret(shares);
+                equal(s.toString('utf8'), secret.toString('utf8'));
+            }
+            secret = Buffer.from("w36575hrhgdivgsidyufgiuhgvsufgoyirsgfiusgrf", 'utf8');
+            for (let i = 0 ; i < 1000; i++) {
+                let shares = __split_secret(5, 5, secret);
+                let s = __restore_secret(shares);
+                equal(s.toString('utf8'), secret.toString('utf8'));
+            }
+            secret = Buffer.from("Super puper secret for splitting test", 'utf8');
+            for (let i = 2; i < 30; i++) {
+                let t =  Math.floor(Math.random() * (30 - i )) + i;
+                let shares = __split_secret(i, t, secret);
+                let r = __restore_secret(shares);
+                equal(r.toString('utf8'), secret.toString('utf8'));
+            }
+
+            for (let i = 2; i < 30; i++) {
+                let t =  Math.floor(Math.random() * (30 - i )) + i;
+                let shares = __split_secret(i, t, secret);
+                let s = {};
+                do {
+                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                    s[i] = shares[i];
+                } while (Object.keys(s).length < i);
+                let r = __restore_secret(s);
+                equal(r.toString('utf8'), secret.toString('utf8'));
+
+            }
+
+            for (let i = 2; i < 30; i++) {
+                let t =  Math.floor(Math.random() * (30 - i )) + i;
+                let shares = __split_secret(i, t, secret);
+                let s = {};
+                let q = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                if (q<i) q = i;
+                do {
+                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+
+                    s[i] = shares[i];
+                } while (Object.keys(s).length < i);
+                let r = __restore_secret(s);
+                equal(r.toString('utf8'), secret.toString('utf8'));
+
+            }
+        }).timeout(14000);
     });
 
     describe("Private key functions:", function () {
