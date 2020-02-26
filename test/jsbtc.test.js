@@ -211,8 +211,8 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 let m2 = combineMnemonic(s);
                 equal(m, m2);
             }
-        });
-    }).timeout(10000);;
+        }).timeout(10000);
+    });
 
     describe("Shamir secret sharing functions:", function () {
 
@@ -1017,41 +1017,41 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
         });
         let rawBlock;
 
-        // it('Download raw block mainnet 520667 size: 1,160,482 bytes - https://bitaps.com/520667', async () => {
-        //     let r = await fetch('https://gist.githubusercontent.com/4tochka/ec827a60214fc46eaa3aae71c6ba28bd/raw/93e875692d2a1d21cc561824461f1cda92e25bf3/test%2520block');
-        //     let b = await r.text();
-        //     rawBlock = Buffer.from(b, 'hex');
-        // }).timeout(6000);
-        //
-        // it('Deserialize block[520667] 2 592 transactions in raw format', () => {
-        //     rawBlock.seek(80);
-        //     let c =  varIntToInt(rawBlock.readVarInt());
-        //     for (let i=0; i<c; i++) new Transaction({rawTx: rawBlock, format: 'raw'});
-        // });
-        //
-        // it('Deserialize block[520667]  2 592 transactions in decoded human readable format', () => {
-        //     rawBlock.seek(80);
-        //     let c =  varIntToInt(rawBlock.readVarInt());
-        //     for (let i=0; i<c; i++) new Transaction({rawTx: rawBlock, format: 'decoded'});
-        // });
-        //
-        // it('Deserialize <-> serialize test block[520667]  2 592 transactions decoded', () => {
-        //     rawBlock.seek(80);
-        //     let c =  varIntToInt(rawBlock.readVarInt());
-        //     for (let i=0; i<c; i++) {
-        //         let t = new Transaction({rawTx: rawBlock, format: 'decoded', keepRawTx:true});
-        //         equal(t.serialize(), t.rawTx);
-        //     }
-        // });
-        //
-        // it('Deserialize <-> serialize test block[520667]  2 592 transactions raw', () => {
-        //     rawBlock.seek(80);
-        //     let c =  varIntToInt(rawBlock.readVarInt());
-        //     for (let i=0; i<c; i++) {
-        //         let t = new Transaction({rawTx: rawBlock, format: 'raw', keepRawTx:true});
-        //         equal(t.serialize(), t.rawTx.hex());
-        //     }
-        // });
+        it('Download raw block mainnet 520667 size: 1,160,482 bytes - https://bitaps.com/520667', async () => {
+            let r = await fetch('https://gist.githubusercontent.com/4tochka/ec827a60214fc46eaa3aae71c6ba28bd/raw/93e875692d2a1d21cc561824461f1cda92e25bf3/test%2520block');
+            let b = await r.text();
+            rawBlock = Buffer.from(b, 'hex');
+        }).timeout(6000);
+
+        it('Deserialize block[520667] 2 592 transactions in raw format', () => {
+            rawBlock.seek(80);
+            let c =  varIntToInt(rawBlock.readVarInt());
+            for (let i=0; i<c; i++) new Transaction({rawTx: rawBlock, format: 'raw'});
+        });
+
+        it('Deserialize block[520667]  2 592 transactions in decoded human readable format', () => {
+            rawBlock.seek(80);
+            let c =  varIntToInt(rawBlock.readVarInt());
+            for (let i=0; i<c; i++) new Transaction({rawTx: rawBlock, format: 'decoded'});
+        });
+
+        it('Deserialize <-> serialize test block[520667]  2 592 transactions decoded', () => {
+            rawBlock.seek(80);
+            let c =  varIntToInt(rawBlock.readVarInt());
+            for (let i=0; i<c; i++) {
+                let t = new Transaction({rawTx: rawBlock, format: 'decoded', keepRawTx:true});
+                equal(t.serialize(), t.rawTx);
+            }
+        });
+
+        it('Deserialize <-> serialize test block[520667]  2 592 transactions raw', () => {
+            rawBlock.seek(80);
+            let c =  varIntToInt(rawBlock.readVarInt());
+            for (let i=0; i<c; i++) {
+                let t = new Transaction({rawTx: rawBlock, format: 'raw', keepRawTx:true});
+                equal(t.serialize(), t.rawTx.hex());
+            }
+        });
 
         it('Transaction constructor', () => {
             let rt = "01000000017a5cd38b31ed002fa41380624d4a8c168a2ea71d8668a9b3fea1d571357d5d00000000006b" +
