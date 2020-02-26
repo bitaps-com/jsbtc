@@ -1,116 +1,78 @@
-var tools = require('./functions/tools.js');
+module.exports = function (S) {
+    let CM = S.__bitcoin_core_crypto.module;
+    let malloc = CM._malloc;
+    let free = CM._free;
+    let BA = S.Buffer.alloc;
+    let ARGS = S.defArgs;
+    let getBuffer = S.getBuffer;
+    let BN = S.BN;
+    let getValue = CM.getValue;
 
-function sha256(message, options) {
-    let K = [];
-// Compute constants
-    !function () {
-        function isPrime(n) {
-            let sqrtN = Math.sqrt(n);
-            for (var factor = 2; factor <= sqrtN; factor++) {
-                if (!(n % factor)) return false
-            }
-            return true
-        }
-
-        function getFractionalBits(n) {
-            return ((n - (n | 0)) * 0x100000000) | 0
-        }
-
-        let n = 2;
-        let nPrime = 0;
-        while (nPrime < 64) {
-            if (isPrime(n)) {
-                K[nPrime] = getFractionalBits(Math.pow(n, 1 / 3));
-                nPrime++
-            }
-            n++;
-        }
-    }();
-
-// Reusable object
-    let W = [];
-    let processBlock = function (H, M, offset) {
-// Working variables
-        let a = H[0], b = H[1], c = H[2], d = H[3];
-        let e = H[4], f = H[5], g = H[6], h = H[7];
-// Computation
-        for (let i = 0; i < 64; i++) {
-            if (i < 16) {
-                W[i] = M[offset + i] | 0;
-            } else {
-                let gamma0x = W[i - 15]
-                let gamma0 = ((gamma0x << 25) | (gamma0x >>> 7)) ^
-                    ((gamma0x << 14) | (gamma0x >>> 18)) ^
-                    (gamma0x >>> 3);
-                let gamma1x = W[i - 2];
-                let gamma1 = ((gamma1x << 15) | (gamma1x >>> 17)) ^
-                    ((gamma1x << 13) | (gamma1x >>> 19)) ^
-                    (gamma1x >>> 10);
-                W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16];
-            }
-            let ch = (e & f) ^ (~e & g);
-            let maj = (a & b) ^ (a & c) ^ (b & c);
-            let sigma0 = ((a << 30) | (a >>> 2)) ^ ((a << 19) | (a >>> 13)) ^ ((a << 10) | (a >>> 22));
-            let sigma1 = ((e << 26) | (e >>> 6)) ^ ((e << 21) | (e >>> 11)) ^ ((e << 7) | (e >>> 25));
-            let t1 = h + sigma1 + ch + K[i] + W[i];
-            let t2 = sigma0 + maj;
-            h = g;
-            g = f;
-            f = e;
-            e = (d + t1) | 0;
-            d = c;
-            c = b;
-            b = a;
-            a = (t1 + t2) | 0;
-        }
-// Intermediate hash value
-        H[0] = (H[0] + a) | 0;
-        H[1] = (H[1] + b) | 0;
-        H[2] = (H[2] + c) | 0;
-        H[3] = (H[3] + d) | 0;
-        H[4] = (H[4] + e) | 0;
-        H[5] = (H[5] + f) | 0;
-        H[6] = (H[6] + g) | 0;
-        H[7] = (H[7] + h) | 0;
+    S.sha256 = (m, A = {}) => {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        m = getBuffer(m, A.encoding);
+        let bP = malloc(m.length);
+        let oP = malloc(32);
+        CM.HEAPU8.set(m, bP);
+        CM._single_sha256(bP, m.length, oP);
+        let out = new BA(32);
+        for (let i = 0; i < 32; i++) out[i] = getValue(oP + i, 'i8');
+        free(bP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
     };
-    let bytesToWords = function (bytes) {
-        let words = [];
-        for (let i = 0, b = 0; i < bytes.length; i++, b += 8) {
-            words[b >>> 5] |= bytes[i] << (24 - b % 32)
-        }
-        return words;
+
+    S.doubleSha256 = (m, A = {}) => {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        m = getBuffer(m, A.encoding);
+        let bP = malloc(m.length);
+        let oP = malloc(32);
+        CM.HEAPU8.set(m, bP);
+        CM._double_sha256(bP, m.length, oP);
+        let out = new BA(32);
+        for (let i = 0; i < 32; i++) out[i] = getValue(oP + i, 'i8');
+        free(bP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
     };
-    let wordsToBytes = function (words) {
-        let bytes = [];
-        for (let b = 0; b < words.length * 32; b += 8) {
-            bytes.push((words[b >>> 5] >>> (24 - b % 32)) & 0xFF);
-        }
-        return bytes;
+
+    S.siphash = function (m, A = {}) {
+        ARGS(A, {encoding: 'hex|utf8', v0: S.BNZerro, v1: S.BNZerro});
+        if (!(A.v1 instanceof BN) || !(A.v0 instanceof BN)) throw new Error('siphash init vectors v0, v1 must be BN instance');
+        m = getBuffer(m, A.encoding);
+        let v0b = A.v0.toArrayLike(Uint8Array, 'le', 8);
+        let v1b = A.v1.toArrayLike(Uint8Array, 'le', 8);
+        let bP = malloc(m.length);
+        let v0Pointer = malloc(8);
+        let v1Pointer = malloc(8);
+        let oP = malloc(8);
+        CM.HEAPU8.set(m, bP);
+        CM.HEAPU8.set(v0b, v0Pointer);
+        CM.HEAPU8.set(v1b, v1Pointer);
+        CM._siphash(v0Pointer, v1Pointer, bP, m.length, oP);
+        let out = new BA(9);
+        for (let i = 0; i < 8; i++) out[8 - i] = getValue(oP + i, 'i8');
+        free(bP);
+        free(oP);
+        return new BN(out);
     };
-    if (message.constructor === String) {
-        message = tools.stringUTF8ToBytes(message);
-    }
-    let H = [0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
-        0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19];
-    let m = bytesToWords(message);
-    let l = message.length * 8;
-    m[l >> 5] |= 0x80 << (24 - l % 32);
-    m[((l + 64 >> 9) << 4) + 15] = l;
-    for (let i = 0; i < m.length; i += 16) {
-        processBlock(H, m, i);
-    }
-    let digestbytes = wordsToBytes(H);
-    return options && options.asBytes ? digestbytes :
-        options && options.asString ? tools.bytesToString(digestbytes) :
-            tools.bytesToHex(digestbytes)
-}
 
-function double_sha256(message, options) {
-    return sha256(sha256(message, {asBytes: true}), options)
-}
+    S.ripemd160 = function (m, A = {}) {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        m = getBuffer(m, A.encoding);
+        let bP = malloc(m.length);
+        let oP = malloc(32);
+        CM.HEAPU8.set(m, bP);
+        CM.__ripemd160(bP, m.length, oP);
+        let out = new BA(20);
+        for (let i = 0; i < 20; i++) out[i] = getValue(oP + i, 'i8');
+        free(bP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
+    };
 
-
-module.exports = {
-    sha256,
-    double_sha256
+    S.hash160 = function (m, A = {}) {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        return S.ripemd160(S.sha256(m, {hex: false, encoding: A.encoding}), {hex: A.hex});
+    };
 };

@@ -1,0 +1,28 @@
+sudo: required
+language: node_js
+cache:
+  directories:
+    - node_modules
+#branches:
+#  only:
+#    - master
+notifiations:
+  email: false
+node_js:
+  - 10
+services:
+  - docker
+
+before_install:
+  - npm install -g npm@^2
+  - npm install -g @babel/core @babel/cli
+  - npm run build:wasm:prebuild
+  - npm run build:wasm
+before_script:
+  - npm prune
+script:
+  - npm run cover
+  - npm run check-coverage
+  - npm run build
+after_success:
+  - npm run report-coverage
