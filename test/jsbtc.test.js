@@ -5,11 +5,10 @@ try {
     chai.use(require("chai-as-promised"));
     browser = false;
     var fetch = require('node-fetch');
-    var window = require("global/window");
+    var window = global;
 } catch (e) {
     console.log(e);
 }
-
 
 const assert = chai.assert;
 const expect = chai.expect;

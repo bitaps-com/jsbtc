@@ -17,6 +17,7 @@ const jsbtc_web = {
         libraryTarget: 'var',
     },
     optimization: {
+        sideEffects: true,
         minimize: true,
             minimizer: [
             new TerserPlugin({

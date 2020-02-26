@@ -4,6 +4,7 @@ const tools = require('./functions/tools.js');
 const opcodes = require('./opcodes.js');
 const hash = require('./functions/hash.js');
 const encoders = require('./functions/encoders.js');
+const mnemonicWordlist = require('./bip39_wordlist.js');
 const mnemonic = require('./functions/bip39_mnemonic.js');
 const key = require('./functions/key.js');
 const address = require('./functions/address.js');
@@ -31,6 +32,7 @@ module.exports = {
         hash(scope);
         encoders(scope);
         mnemonic(scope);
+        mnemonicWordlist(scope);
 
         scope.secp256k1PrecompContextSign = scope.__bitcoin_core_crypto.module._secp256k1_context_create(scope.SECP256K1_CONTEXT_SIGN);
         scope.secp256k1PrecompContextVerify = scope.__bitcoin_core_crypto.module._secp256k1_context_create(scope.SECP256K1_CONTEXT_VERIFY);

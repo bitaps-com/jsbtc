@@ -105,7 +105,7 @@ module.exports = function (S) {
         return ans * ax;
     };
 
-    S.erfc =  (x) => {
+    S.erfc = (x) => {
         let z = Math.abs(x);
         let t = 1 / (1 + z / 2);
         let r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
@@ -208,4 +208,17 @@ module.exports = function (S) {
             b = b.slice(0,A.strength / 8);
             return A.hex ? b.hex() : b;
         };
+
+    S.entropyToMnemonic =  (e, wordList = S.BIP39_WORDLIST) => {
+        e = S.getBuffer(e);
+        if (!([16, 20, 24, 28, 32].includes(e.length)))
+            throw new TypeError('entropy length should be one of the following: [16, 20, 24, 28, 32]');
+        if (!(wordList instanceof Array) || (wordList.length !== 2048))
+            throw new TypeError('invalid wordlist');
+
+
+
+    };
+
+
 };
