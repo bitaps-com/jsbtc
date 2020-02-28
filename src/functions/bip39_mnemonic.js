@@ -1,17 +1,16 @@
 module.exports = function (S) {
     let BN = S.BN;
-    let nodeCrypto = S.__nodeCrypto;
-    let window = S.getWindow();
+    let C = S.__nodeCrypto;
+    let W = S.getWindow();
     let ARGS = S.defArgs;
 
 
     S.getRandomValues = (buf) => {
-        if (window.crypto && window.crypto.getRandomValues) return window.crypto.getRandomValues(buf);
+        if (W.crypto && W.crypto.getRandomValues) return W.crypto.getRandomValues(buf);
+        if (typeof W.msCrypto === 'object' && typeof W.msCrypto.getRandomValues === 'function')
+            return W.msCrypto.getRandomValues(buf);
 
-        if (typeof window.msCrypto === 'object' && typeof window.msCrypto.getRandomValues === 'function')
-            return window.msCrypto.getRandomValues(buf);
-
-        if (nodeCrypto!==false) {
+        if (C!==false) {
             if (!(buf instanceof Uint8Array))  throw new TypeError('expected Uint8Array');
             if (buf.length > 65536) {
                 let e = new Error();
@@ -22,7 +21,7 @@ module.exports = function (S) {
                 e.name = 'QuotaExceededError';
                 throw e;
             }
-            let bytes = nodeCrypto.randomBytes(buf.length);
+            let bytes = C.randomBytes(buf.length);
             buf.set(bytes);
             return buf;
         } else throw new Error('No secure random number generator available.');
@@ -177,34 +176,24 @@ module.exports = function (S) {
         }
     };
 
-
     S.generateEntropy = (A = {}) => {
             ARGS(A, {strength: 256, hex: true, sec256k1Order:true});
             if (!([128, 160, 192, 224, 256].includes(A.strength)))
                 throw new TypeError('strength should be one of the following [128, 160, 192, 224, 256]');
 
             let b = S.Buffer.alloc(32);
-            let attempt = 0;
-            let order = new BN(S.ECDSA_SEC256K1_ORDER, 16);
-            let p;
-            let found;
+            let attempt = 0, p, f;
             do {
-                found = true;
-                attempt++;
-                if (attempt > 100) throw new Error('Generate randomness failed');
+                f = true;
+                if (attempt++ > 100) throw new Error('Generate randomness failed');
                 S.getRandomValues(b);
-
                 if (A.sec256k1Order) {
                     p = new BN(b);
-                    if ((p.gte(order))) continue;
+                    if ((p.gte(S.ECDSA_SEC256K1_ORDER))) continue;
                 }
-
-                try {
-                    S.randomnessTest(b);
-                } catch (e) { found = false; }
+                try { S.randomnessTest(b); } catch (e) { f = false; }
             }
-            while (!found);
-
+            while (!f);
             b = b.slice(0,A.strength / 8);
             return A.hex ? b.hex() : b;
         };
@@ -237,6 +226,15 @@ module.exports = function (S) {
         e = e.shrn(checkSumBitLen);
         e = e.toArrayLike(S.Buffer, 'be', Math.ceil((bitSize- checkSumBitLen)/8));
         return (A.hex) ? e.hex() : e;
+    };
+
+
+    S.mnemonicToSeed =  (m, A = {}) => {
+        ARGS(A, {passphrase: "", checkSum: false, hex: true});
+        if (!S.isString(m)) throw new Error("mnemonic should be string");
+        if (!S.isString(A.passphrase)) throw new Error("passphrase should be string");
+        let s = S.pbdkdf2HmacSha512(m, "mnemonic" + A.passphrase, 2048);
+        return (A.hex) ? s.hex() : s;
     };
 
     S.isMnemonicValid =  (m, A = {}) => {

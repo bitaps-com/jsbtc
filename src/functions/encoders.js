@@ -1,6 +1,7 @@
 module.exports = function (S) {
     let CM = S.__bitcoin_core_crypto.module;
     let BA = Buffer.alloc;
+    let BC = Buffer.concat;
     let getBuffer = S.getBuffer;
     let ARGS = S.defArgs;
     let malloc = CM._malloc;
@@ -8,8 +9,9 @@ module.exports = function (S) {
     let getValue = CM.getValue;
 
     S.encodeBase58 = (m, A = {}) => {
-        ARGS(A, {encoding: 'hex|utf8'});
+        ARGS(A, {encoding: 'hex|utf8', checkSum: false});
         m = getBuffer(m, A.encoding);
+        if (A.checkSum) m = BC([m, S.doubleSha256(m).slice(0,4)]);
         if (m.length > 1073741823) throw new Error('encodeBase58 message is too long');
 
         let bP = malloc(m.length);
@@ -29,7 +31,7 @@ module.exports = function (S) {
     };
 
     S.decodeBase58 = (m, A = {}) => {
-        ARGS(A, {hex: true});
+        ARGS(A, {hex: true, checkSum: false});
         if (!S.isString(m)) throw new Error('decodeBase58 string required');
         if (m.length > 2147483647) throw new Error('decodeBase58 string is too long');
         let mB = new BA(m.length + 1);
@@ -46,6 +48,7 @@ module.exports = function (S) {
         free(bP);
         free(oLP);
         free(oP);
+        if (A.checkSum) out = out.slice(0, -4);
         return (A.hex) ? out.hex() : out;
     };
 

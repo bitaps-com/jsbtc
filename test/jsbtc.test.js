@@ -54,7 +54,6 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             expect(() => siphash("", {v0: 43, v1: v1}).toString('hex')).to.throw('must be BN instance');
             expect(() => siphash("", {v0: v0, v1: 11}).toString('hex')).to.throw('must be BN instance');
         });
-
         it('ripemd160', () => {
             equal(ripemd160("test hash160", {hex: true}),
                 "46a80bd289028559818a222eea64552d7a6a966f");
@@ -67,14 +66,20 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(Buffer.from("46a80bd289028559818a222eea64552d7a6a966f", 'hex').equals(ripemd160("146573742068617368313630")),
                 false);
         });
-
         it('hash160', () => {
             equal(hash160("test hash160", {hex: true}), "b720061a734285a70e86cb32b31f32884e198c32");
             equal(hash160("746573742068617368313630", {hex: true}), "b720061a734285a70e86cb32b31f32884e198c32");
             equal(Buffer.from("b720061a734285a70e86cb32b31f32884e198c32", 'hex').equals(hash160("746573742068617368313630")), true);
             equal(Buffer.from("b720061a734285a70e86cb32b31f32884e198c32", 'hex').equals(hash160("146573742068617368313630")), false);
         });
-
+        it('hmac sha512', () => {
+            equal(hmacSha512("super key", "super data", {hex: true}),
+                "8ec43ebe20084b72849eaca74d0dff44cb8db418944a25887673dc22ef8dd52d46ca56739d3d35e841" +
+                "bcebc3d7e8afc763b13c2018ef2462a5903c548c5c2600");
+            equal(hmacSha512("7375706572206b6579", "super data", {hex: true}),
+                "8ec43ebe20084b72849eaca74d0dff44cb8db418944a25887673dc22ef8dd52d46ca56739d3d35e841" +
+                "bcebc3d7e8afc763b13c2018ef2462a5903c548c5c2600");
+        });
 
     });
 
@@ -190,6 +195,16 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(isMnemonicValid(m), false)
         });
 
+        it('mnemonic to seed', () => {
+            let m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
+                   'point skate life truly hockey scout assault lab impulse boss';
+            let s = "a870edd6272a4f0962a7595612d96645f683a3378fd9b067340eb11ebef45cb3d28fb64678cadc43969846" +
+               "0a3d48bd57b2ae562b6d2b3c9fb5462d21e474191c";
+            equal(mnemonicToSeed(m, {hex:true}), s);
+
+        });
+
+
         it('splitMnemonic + combineMnemonic', () => {
             let m = entropyToMnemonic(generateEntropy());
             let s = splitMnemonic(3, 5, m);
@@ -212,6 +227,80 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 equal(m, m2);
             }
         }).timeout(10000);
+    });
+
+    describe("BIP32 functions:", function () {
+        it('createMasterXPrivateKey', () => {
+            let e = "6afd4fd96ca02d0b7038429b77e8b32042fc205d031144054086130e8d83d981";
+            equal("xprv9s21ZrQH143K4LAkSUTJ3JiZ4cJc1FyRxCbPoWTQVssiezx3gpav8iJdHggBTTUv37iQUrfNDYpGmTSP6zwFD2kJAFiUzpewivZUD6Jqdai",
+                createMasterXPrivateKey(mnemonicToSeed(entropyToMnemonic(e))))
+        });
+
+        it('xPrivateToXPublicKey', () => {
+            let m = "debate pattern hotel silly grit must bronze athlete kitten salute salmon cat control hungry little";
+            let seed = mnemonicToSeed(m);
+            let xPriv = createMasterXPrivateKey(seed, {hex: true});
+            equal("xpub661MyMwAqRbcFRtq6C9uK3bk7pmqc5ahhqDjxx6dfge6njx6jU9EhFwpLfiE6tQv8gjuez5PkQfxTZw4UUwwkut34JRYLWpJLNGPcUCGxj8",
+                  xPrivateToXPublicKey(xPriv));
+            xPriv = createMasterXPrivateKey(seed, {hex: false});
+            equal("xpub661MyMwAqRbcFRtq6C9uK3bk7pmqc5ahhqDjxx6dfge6njx6jU9EhFwpLfiE6tQv8gjuez5PkQfxTZw4UUwwkut34JRYLWpJLNGPcUCGxj8",
+                xPrivateToXPublicKey(xPriv));
+            m = "extend whip emerge audit drama pumpkin breeze weather torch image insane rigid";
+            seed = mnemonicToSeed(m);
+            xPriv = createMasterXPrivateKey(seed);
+            equal("xpub661MyMwAqRbcEodnzMiUBjyAnsYRzMKSAo8e2APk4Z6qXbtWPFxtDPGLeuPRJ2NJaWQBYn6weuExWuNDsNvUWLyRXmSHBdzwZysmJoLatK7",
+                xPrivateToXPublicKey(xPriv));
+            m = "toast exchange giggle car seminar beyond federal debate donate confirm topple enough unusual corn photo casual section only";
+            seed = mnemonicToSeed(m);
+            xPriv = createMasterXPrivateKey(seed);
+            equal("xpub661MyMwAqRbcFVMC8d2uwpiGSh16zofbhi8PDzNBantpk5qNpRr1kK3mpgScnqUp4VDW9iFwt6gVgQcFp3QjfUYSNee8n9V2SZiMtotWfDm",
+                xPrivateToXPublicKey(xPriv));
+            m = "festival life pudding glide champion enhance sponsor phone panel permit mean guard chunk hedgehog view foam thought pride regular invite rice";
+            seed = mnemonicToSeed(m);
+            xPriv = createMasterXPrivateKey(seed);
+            equal("xpub661MyMwAqRbcH5iGdcfyAo1JvG6eweRhYgNvnMv7QBYZ7KNW32CKh1W3kxa2t4MHZhLt71EMhMPEifvxLmo7SKh5wmYxUDKVDeWbuHDcDsb",
+                xPrivateToXPublicKey(xPriv));
+            m = "window travel aunt result badge two federal defense weasel window nothing life enforce warrior rubber stool parent elevator jazz lava fame blade prefer utility";
+            seed = mnemonicToSeed(m);
+            xPriv = createMasterXPrivateKey(seed);
+            equal("xpub661MyMwAqRbcG5AjafHzq3GsaoY2PwudLxECQ4hrkfV2K5JrnWQj1puS1Ci5DLNDTQrdU7y1ibkBFdQ2CaZnV9MHXX78gbtUXASAuQ3kiJe",
+                xPrivateToXPublicKey(xPriv));
+        });
+
+        it('__deriveChildXPrivateKey', () => {
+            let xPriv = "xprv9s21ZrQH143K3CSC8gBJRWPHPzi8Y17VzhuMGgSyyiGYzbbCnmUE1zpR2iQCzVGPGAQBy2m7LTEtPAvfB6p2ECoQBAWtQYgYHpn1UFQv6Mi";
+            xPriv = decodeBase58(xPriv, {hex: false, checkSum: true});
+            equal("xprv9uxHkb3zFYjmC9AshDxocSv8SWphDkWq7VpNauF8hhGNMuqK2o4AKhhhuFADy1H5pVVAdZJCnyDmjZBZmgUR8aciXXELWfU6tCF4BCrhz5m",
+                  encodeBase58(__deriveChildXPrivateKey(xPriv, 1),{checkSum: true}));
+            equal("xprv9uxHkb3zFYjm9WnMk636CLyiCt2h6mgVR2u5iy8PgAkPW1xYCuUGYUzU6A4HWS7hDhKVQufiymoj9oYjqg1h7331YjwVTfSBN97gSo65DiV",
+                encodeBase58(__deriveChildXPrivateKey(xPriv, 0),{checkSum: true}));
+            equal("xprv9uxHkb3zFYzv3TK97XAQ5YykGBuFgMo5mKzjvQKuzbPf3FBeVgTC2ozTtspLBU2X4HWWFDocpB1sHjSXJby89m6cKhLhWUdhUWdF4o39kw4",
+                encodeBase58(__deriveChildXPrivateKey(xPriv, 20000),{checkSum: true}));
+            equal("xprv9uxHkb3zFzs4rMGo9d25NcHCyePGswYHY6fMk76DzbZ5iCucy7VtdjYa1o4n28bnnGLW4ComhMjNiUKxbgq6p6vc9zwHfHb1fvdhAvsURty",
+                encodeBase58(__deriveChildXPrivateKey(xPriv, 2000000),{checkSum: true}));
+
+        });
+
+        it('__deriveChildXPublicKey', () => {
+            let xPub = "xpub661MyMwAqRbcFgWfEhiJneL1x2YcwTqMMvpx54rbY3oXsPvMLJnUZo8tsxpGFsUrFW9zMFKAGzaDDy1pR2uoohh1CW24Se1vkSnXRMqPV9R";
+            xPub = decodeBase58(xPub, {hex: false, checkSum: true});
+            equal("xpub68weA6at5vJ4Mzrpr7a6ZUvSkusBWEQLnFpgXMY1EWHNNpHgkSnX6HJwwSjN7z9PFrgTLK6gtWZ37o3b2ZAQSc4V9GdxdjVTjymSVit5Sai",
+                encodeBase58(__deriveChildXPublicKey(xPub, 0),{checkSum: true}));
+            equal("xpub68weA6at5vJ5fuUhS2bUgtse4cswz9VpU3UJAY93oUwpP8P4oDhTtGKizXsosJH99RWnnyD9txQXBAcyAEiykRDAoyHLCcpW2vkrnsSymDQ",
+                encodeBase58(__deriveChildXPublicKey(xPub, 30),{checkSum: true}));
+        });
+
+        it('deriveXKey', () => {
+            let root = "xprv9s21ZrQH143K39fFeGf2cWBTZ6NVj6ZsQ7nEK9f5pWqt4YwHPhnCF3GtMsPNA9cCz1j8j9Zs493ejkzJqUWqwGqQ2J8iNc1jFtFPbie7bZ4";
+            equal(deriveXKey(root, "m/0"), "xprv9v7aNJTyjf9pZ2e1XwaKwTaiYqmwy9C43GPrczk9NauP4aWYqeKh5UfE3ocfV92UGFKBbQNZib8TDtqD8y5axYQMUzVJzHXphdNF6Cc6YM3");
+            equal(deriveXKey(root, "m/0'"), "xprv9v7aNJU85KgnkrGKiEJMTnZJMSpbAvQdcUGm2q4s7Z2ZPA9iTwNdD92ESDXbxLt6WAsjaT5xHQNNgHBmwjgwscmPjE1dDuQ5rVC9Jowgu8q");
+            equal(deriveXKey(root, "m/1"), "xprv9v7aNJTyjf9pazc9j5X7CkK3t4ywxLzsWazZL9x8JE1f8f7dsv6xjtWEZN2cahUYqaEkr27oyGfc7Y8KG18B55j7h57W3SdiAvXcztzB7MV");
+            equal(deriveXKey(root, "m/44'/0'/0'"), "xprv9zAN5JC2upM319x3bsP9aa1jbE9MoyXNuSkm9rTggLBgUSHwsvigCrwb3VJHpkb5KLteb9jwCpXnk7kS5ac3Av8Vn5UG2PgTdrxb9wPeipW");
+            equal(deriveXKey(root, "m/44'/0'/1'"), "xprv9zAN5JC2upM355bhe2xJWyzEVg7SD15PxVkN6FWPTjFPAkKoNoxPmxvC76SK6k7HDc1WQhYaXYyEUTTuVLYbKomAna5pFbDJCMVzfKHfZUS");
+            let pub = "xpub6D9iUoivkBuLHZgAk4VJt7vy3hwvcToFKifxtdv124nN3YewvMGeKmEfxLVZFLTCzQLS9NBwUzFVi66w5YnHM5o3y9GwQJSfroev539tkUZ";
+            equal(deriveXKey(pub, "m/0"), "xpub6FPUvcox6BxqQCt2GRHTdy5ehEKr3JRX1DjZTUutrRh8VsWNS6tfNZd5ZctuDZhm5dRdepkwBgz77p8dVmNuMbBifts556S6jy3gERc3Tfy");
+            equal(deriveXKey(pub, "m/0/3/4"), "xpub6J7BeAMm9AYT56iBvZ8ceMksXimevjhcV9yCWM7UdkFZXWDvNHb7qLkFwwewtZp8bVKhsqZfHfvZN6KpT59BuQy4e93pP3AoXk8uzCu8aPJ");
+        });
     });
 
     describe("Shamir secret sharing functions:", function () {
@@ -291,7 +380,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
         }).timeout(14000);
     });
 
-    describe("Private key functions:", function () {
+    describe("Private/Public key functions:", function () {
         it('privateKeyToWif', () => {
             equal(privateKeyToWif("ceda1ae4286015d45ec5147fe3f63e9377ccd6d4e98bcf0847df9937da1944a4"),
                 'L49obCXV7fGz2YRzLCSJgeZBYmGeBbKPT7xiehUeYX2S4URkPFZX');
@@ -369,6 +458,17 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(isPublicKeyValid(pu), false);
             equal(isPublicKeyValid(pk), false);
             equal(isPublicKeyValid("8798"), false);
+        });
+
+        it('publicKeyAdd', () => {
+            let p = "035347c6b364a977a5a41814459c2107bd64271e4923a94615855aa8d6a5b14d1f";
+            let tweak = "21db3d0c73b6923e1594651bdbccea4891d5c0e0b25329a4b26a920d528bc77c";
+            equal("0394b69f5ba9ca08614b3197e2bf10a44e51544cb6cf20c6125dfd0b693e91b667", publicKeyAdd(p,tweak));
+            p = "04102e8f5e416cc8c6eea0e65581b9d2a2d0980a9189f9650391218f0c9c149e799717b1cf812e3a72f09b023ef62785f55a7f4f314b6f76908ab0fe4618dfa74d";
+            tweak = "21db3d0c73b6923e1594651bdbccea4891d5c0e0b25329a4b26a920d528bc77c";
+            equal("031de63c13ca530d77cc9ede1a8315e5358d461a86dcd0f3daa6454ec6409aa558", publicKeyAdd(p,tweak));
+            equal("041de63c13ca530d77cc9ede1a8315e5358d461a86dcd0f3daa6454ec6409aa5580dd0318c7e809022de26d0f6d59f66d0b10176e243d479a34cbca5b0f2ab51cf",
+                publicKeyAdd(p,tweak, {compressed: false}));
         });
     });
 
@@ -822,7 +922,6 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
         });
     });
 
-
     describe("Address classes:", function () {
         it('PrivateKey', () => {
             let h = "7B56E2B7BD189F4491D43A1D209E6268046DF1741F61B6397349D7AA54978E76";
@@ -1021,7 +1120,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             let r = await fetch('https://gist.githubusercontent.com/4tochka/ec827a60214fc46eaa3aae71c6ba28bd/raw/93e875692d2a1d21cc561824461f1cda92e25bf3/test%2520block');
             let b = await r.text();
             rawBlock = Buffer.from(b, 'hex');
-        }).timeout(6000);
+        }).timeout(16000);
 
         it('Deserialize block[520667] 2 592 transactions in raw format', () => {
             rawBlock.seek(80);
