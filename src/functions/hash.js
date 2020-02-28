@@ -36,7 +36,7 @@ module.exports = function (S) {
         return (A.hex) ? out.hex() : out;
     };
 
-    S.siphash = function (m, A = {}) {
+    S.siphash =  (m, A = {}) => {
         ARGS(A, {encoding: 'hex|utf8', v0: S.BNZerro, v1: S.BNZerro});
         if (!(A.v1 instanceof BN) || !(A.v0 instanceof BN)) throw new Error('siphash init vectors v0, v1 must be BN instance');
         m = getBuffer(m, A.encoding);
@@ -57,7 +57,7 @@ module.exports = function (S) {
         return new BN(out);
     };
 
-    S.ripemd160 = function (m, A = {}) {
+    S.ripemd160 = (m, A = {}) => {
         ARGS(A, {encoding: 'hex|utf8', hex: false});
         m = getBuffer(m, A.encoding);
         let bP = malloc(m.length);
@@ -71,8 +71,46 @@ module.exports = function (S) {
         return (A.hex) ? out.hex() : out;
     };
 
-    S.hash160 = function (m, A = {}) {
+    S.hash160 = (m, A = {}) => {
         ARGS(A, {encoding: 'hex|utf8', hex: false});
         return S.ripemd160(S.sha256(m, {hex: false, encoding: A.encoding}), {hex: A.hex});
     };
+
+    S.hmacSha512 = (k, d, A = {}) => {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        k = getBuffer(k, A.encoding);
+        d = getBuffer(d, A.encoding);
+        let kP = malloc(k.length);
+        let dP = malloc(d.length);
+        let oP = malloc(64);
+        CM.HEAPU8.set(k, kP);
+        CM.HEAPU8.set(d, dP);
+        CM._hmac_sha512_oneline(kP, k.length, dP, d.length, oP);
+        let out = new BA(64);
+        for (let i = 0; i < 64; i++) out[i] = getValue(oP + i, 'i8');
+        free(kP);
+        free(dP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
+    };
+
+    S.pbdkdf2HmacSha512 = (password, salt, i, A = {}) => {
+        ARGS(A, {encoding: 'utf8', hex: false});
+        let p = getBuffer(password, A.encoding);
+        let s = getBuffer(salt, A.encoding);
+        let pP = malloc(p.length);
+        let sP = malloc(s.length);
+        let oP = malloc(64);
+        CM.HEAPU8.set(p, pP);
+        CM.HEAPU8.set(s, sP);
+        CM._pbkdf2_hmac_sha512(pP, p.length, sP, s.length, i,  oP, 64);
+        let out = new BA(64);
+        for (let i = 0; i < 64; i++) out[i] = getValue(oP + i, 'i8');
+        free(pP);
+        free(sP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
+    };
+
+
 };

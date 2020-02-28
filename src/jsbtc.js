@@ -9,6 +9,7 @@ const mnemonicWordlist = require('./bip39_wordlist.js');
 const mnemonic = require('./functions/bip39_mnemonic.js');
 const key = require('./functions/key.js');
 const address = require('./functions/address.js');
+const bip32 = require('./functions/bip32.js');
 const script = require('./functions/script.js');
 const Address = require('./classes/address.js');
 const Transation = require('./classes/transaction.js');
@@ -26,8 +27,8 @@ module.exports = {
     },
     __asyncInit: async function (scope) {
         if (scope === undefined) scope = this;
-        constants(scope);
         tools(scope);
+        constants(scope);
         opcodes(scope);
         scope.__bitcoin_core_crypto = await this.__initCryptoModule();
         hash(scope);
@@ -45,6 +46,7 @@ module.exports = {
 
         key(scope);
         address(scope);
+        bip32(scope);
         script(scope);
         Address(scope);
         Transation(scope);

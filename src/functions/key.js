@@ -114,6 +114,41 @@ module.exports = function (S) {
         if ((key[0] === 2) || (key[0] === 3))
             if (key.length !== 33) return false;
         return !((key[0] < 2) || (key[0] > 4));
-    }
+    };
 
+    S.publicKeyAdd = (key, tweak, A = {}) => {
+        ARGS(A, {compressed: true, hex: true});
+        key = S.getBuffer(key);
+        tweak = S.getBuffer(tweak);
+        let keyP = malloc(key.length);
+        let tweakP = malloc(tweak.length);
+        crypto.HEAPU8.set(key, keyP);
+        crypto.HEAPU8.set(tweak, tweakP);
+        let rawKeyP = malloc(65);
+
+        let r = crypto._secp256k1_ec_pubkey_parse(S.secp256k1PrecompContextVerify, rawKeyP, keyP, key.length);
+
+        if (!r) throw new Error('publicKeyAdd failed');
+        r = crypto._secp256k1_ec_pubkey_tweak_add(S.secp256k1PrecompContextVerify, rawKeyP, tweakP);
+        if (!r) throw new Error('publicKeyAdd failed');
+        let flag = (A.compressed) ? S.SECP256K1_EC_COMPRESSED : S.SECP256K1_EC_UNCOMPRESSED;
+        let pubLen = (A.compressed) ? 33 : 65;
+        let publicKeySerializedPointer = malloc(65);
+        let pubLenPointer = malloc(1);
+        crypto.HEAPU8.set([pubLen], pubLenPointer);
+        r = crypto._secp256k1_ec_pubkey_serialize(S.secp256k1PrecompContextVerify,
+            publicKeySerializedPointer, pubLenPointer, rawKeyP, flag);
+        let out;
+        if (r) {
+            out = new BA(pubLen);
+            for (let i = 0; i < pubLen; i++) out[i] = getValue(publicKeySerializedPointer + i, 'i8');
+        } else out = false;
+        free(keyP);
+        free(tweakP);
+        free(rawKeyP);
+        free(pubLenPointer);
+        free(publicKeySerializedPointer);
+        if (out === false) throw new Error('publicKeyAdd failed');
+        return (A.hex) ? out.hex() : out;
+    };
 };

@@ -1,5 +1,5 @@
 module.exports = function (S) {
-
+    let BF = S.Buffer.from;
     let INT_BASE32_MAP = {};
     let BASE32_INT_MAP = {};
     let BASE32CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
@@ -96,7 +96,7 @@ module.exports = function (S) {
         0.36899182659531622704e-5];
     S.MACHEP = 1.11022302462515654042E-16;
     S.MAXLOG = 7.09782712893383996732E2;
-    S.ECDSA_SEC256K1_ORDER = 'fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141';
+    S.ECDSA_SEC256K1_ORDER =  new S.BN('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 16);
     S.SECP256K1_CONTEXT_VERIFY = (1 << 0) | (1 << 8);
     S.SECP256K1_CONTEXT_SIGN = (1 << 0) | (1 << 9);
     S.SECP256K1_CONTEXT_NONE = (1 << 0);
@@ -111,41 +111,29 @@ module.exports = function (S) {
     S.FIRST_HARDENED_CHILD = 0x80000000;
     S.PATH_LEVEL_BIP0044 = [0x8000002C, 0x80000000, 0x80000000, 0, 0];
     S.TESTNET_PATH_LEVEL_BIP0044 = [0x8000002C, 0x80000001, 0x80000000, 0, 0];
-
+    // CONSTANTS hierarchical deterministic wallets (HD Wallets)
+    // m/44'/0' P2PKH
+    S.MAINNET_XPRIVATE_KEY_PREFIX = BF([0x04, 0x88, 0xad, 0xe4]);
+    S.MAINNET_XPUBLIC_KEY_PREFIX = BF([0x04, 0x88, 0xb2, 0x1e]);
+    // m/44'/1' P2PKH
+    S.TESTNET_XPRIVATE_KEY_PREFIX = BF([0x04, 0x35, 0x83, 0x94]);
+    S.TESTNET_XPUBLIC_KEY_PREFIX = BF([0x04, 0x35, 0x87, 0xcf]);
+    // m/44'/0' P2PKH
+    S.MAINNET_M44_XPRIVATE_KEY_PREFIX = BF([0x04, 0x88, 0xad, 0xe4]);
+    S.MAINNET_M44_XPUBLIC_KEY_PREFIX = BF([0x04, 0x88, 0xb2, 0x1e]);
+    // m/44'/1' P2PKH
+    S.TESTNET_M44_XPRIVATE_KEY_PREFIX = BF([0x04, 0x35, 0x83, 0x94]);
+    S.TESTNET_M44_XPUBLIC_KEY_PREFIX = BF([0x04, 0x35, 0x87, 0xcf]);
+    // m/49'/0' P2WPKH in P2SH
+    S.MAINNET_M49_XPRIVATE_KEY_PREFIX = BF([0x04, 0x9d, 0x78, 0x78]);
+    S.MAINNET_M49_XPUBLIC_KEY_PREFIX = BF([0x04, 0x9d, 0x7c, 0xb2]);
+    // m/49'/1' P2WPKH in P2SH
+    S.TESTNET_M49_XPRIVATE_KEY_PREFIX = BF([0x04, 0x4a, 0x4e, 0x28]);
+    S.TESTNET_M49_XPUBLIC_KEY_PREFIX = BF([0x04, 0x4a, 0x52, 0x62]);
+    // m/84'/0' P2WPKH
+    S.MAINNET_M84_XPRIVATE_KEY_PREFIX = BF([0x04, 0xb2, 0x43, 0x0c]);
+    S.MAINNET_M84_XPUBLIC_KEY_PREFIX = BF([0x04, 0xb2, 0x47, 0x46]);
+    // m/84'/1' P2WPKH
+    S.TESTNET_M84_XPRIVATE_KEY_PREFIX = BF([0x04, 0x5f, 0x18, 0xbc]);
+    S.TESTNET_M84_XPUBLIC_KEY_PREFIX = BF([0x04, 0x5f, 0x1c, 0xf6]);
 };
-
-
-// # CONSTANTS hierarchical deterministic wallets (HD Wallets)
-// # m/44'/0' P2PKH
-// MAINNET_XPRIVATE_KEY_PREFIX = b'\x04\x88\xAD\xE4'
-// MAINNET_XPUBLIC_KEY_PREFIX = b'\x04\x88\xB2\x1E'
-//
-// # m/44'/1' P2PKH
-// TESTNET_XPRIVATE_KEY_PREFIX = b'\x04\x35\x83\x94'
-// TESTNET_XPUBLIC_KEY_PREFIX = b'\x04\x35\x87\xCF'
-//
-// # m/44'/0' P2PKH
-// MAINNET_M44_XPRIVATE_KEY_PREFIX = b'\x04\x88\xAD\xE4'
-// MAINNET_M44_XPUBLIC_KEY_PREFIX = b'\x04\x88\xB2\x1E'
-//
-// # m/44'/1' P2PKH
-// TESTNET_M44_XPRIVATE_KEY_PREFIX = b'\x04\x35\x83\x94'
-// TESTNET_M44_XPUBLIC_KEY_PREFIX = b'\x04\x35\x87\xCF'
-//
-//
-//
-// # m/49'/0' P2WPKH in P2SH
-// MAINNET_M49_XPRIVATE_KEY_PREFIX = b'\x04\x9d\x78\x78'
-// MAINNET_M49_XPUBLIC_KEY_PREFIX = b'\x04\x9d\x7c\xb2'
-//
-// # m/49'/1' P2WPKH in P2SH
-// TESTNET_M49_XPRIVATE_KEY_PREFIX = b'\x04\x4a\x4e\x28'
-// TESTNET_M49_XPUBLIC_KEY_PREFIX = b'\x04\x4a\x52\x62'
-//
-// # m/84'/0' P2WPKH
-// MAINNET_M84_XPRIVATE_KEY_PREFIX = b'\x04\xb2\x43\x0c'
-// MAINNET_M84_XPUBLIC_KEY_PREFIX = b'\x04\xb2\x47\x46'
-//
-// # m/84'/1' P2WPKH
-// TESTNET_M84_XPRIVATE_KEY_PREFIX = b'\x04\x5f\x18\xbc'
-// TESTNET_M84_XPUBLIC_KEY_PREFIX = b'\x04\x5f\x1c\xf6'

@@ -11,6 +11,7 @@ module.exports = function (S) {
     S.Buffer.prototype.seek = function (n) {
         this.__offset = (n > this.length) ? this.length : n;
     };
+
     S.Buffer.prototype.tell = function () {
         this.__offset;
     };
@@ -118,15 +119,6 @@ module.exports = function (S) {
             return x.charCodeAt(0)
         })
     };
-
-    S.bytesToStringUTF8 = function bytesToStringUTF8(bytes) {
-        return decodeURIComponent(escape(bytesToString(bytes)))
-    }
-
-
-    S.stringUTF8ToBytes = function (str) {
-        return S.stringToBytes(unescape(encodeURIComponent(str)))
-    }
 
     S.intToBytes = function (x, n, byte_order = "little") {
         let bytes = [];
