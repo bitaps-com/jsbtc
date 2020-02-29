@@ -29,10 +29,8 @@ module.exports = function (S) {
         if (!S.isBuffer(xKey)) throw new Error("invalid xPrivateKey");
         if (xKey.length !== 78) throw new Error("invalid xPrivateKey");
         let prefix;
-        if (xKey.slice(0, 4).equals(S.TESTNET_XPRIVATE_KEY_PREFIX))
-            prefix = S.TESTNET_XPUBLIC_KEY_PREFIX;
-        else if (xKey.slice(0, 4).equals(S.MAINNET_XPRIVATE_KEY_PREFIX))
-            prefix = S.MAINNET_XPUBLIC_KEY_PREFIX;
+        if (xKey.slice(0, 4).equals(S.TESTNET_XPRIVATE_KEY_PREFIX)) prefix = S.TESTNET_XPUBLIC_KEY_PREFIX;
+        else if (xKey.slice(0, 4).equals(S.MAINNET_XPRIVATE_KEY_PREFIX)) prefix = S.MAINNET_XPUBLIC_KEY_PREFIX;
         else throw new Error("invalid xPrivateKey");
         let key = BC([prefix, xKey.slice(4, 45),
                       S.privateToPublicKey(xKey.slice(46), {hex: false})]);
@@ -102,14 +100,14 @@ module.exports = function (S) {
 
     S.publicFromXPublicKey = (xPub, A = {}) => {
         ARGS(A, {hex: true});
-        if (S.isString()) xPub = S.decodeBase58(xPub, {checkSum: true, hex: false});
+        if (S.isString(xPub)) xPub = S.decodeBase58(xPub, {checkSum: true, hex: false});
         if (xPub.length !== 78) throw new Error("invalid extended public key");
         return (A.hex) ? xPub.slice(45).hex() : xPub.slice(45)
     };
 
     S.privateFromXPrivateKey = (xPriv, A = {}) => {
         ARGS(A, {wif: true});
-        if (S.isString()) xPriv = S.decodeBase58(xPriv, {checkSum: true, hex: false});
+        if (S.isString(xPriv)) xPriv = S.decodeBase58(xPriv, {checkSum: true, hex: false});
         if (xPriv.length !== 78) throw new Error("invalid extended public key");
         let prefix = xPriv.slice(0, 4);
         let testnet;
@@ -117,44 +115,36 @@ module.exports = function (S) {
         else if  (prefix.equals(S.TESTNET_XPRIVATE_KEY_PREFIX)) testnet = true;
         else
             throw new Error("invalid extended public key");
-        return (A.wif) ? S.privateKeyToWif(xPriv.slice(46), {testnet: testnet}) : xPriv.slice(46)
+        return (A.wif) ? S.privateKeyToWif(xPriv.slice(46), {testnet: testnet, wif:true}) : xPriv.slice(46)
     };
 
     S.isXPrivateKeyValid = (xPriv) => {
-        try {
-            if (S.isString()) xPriv = S.decodeBase58(xPriv, {checkSum: true, hex: false});
-            if (xPriv.length !== 78) return false;
-            let prefix = xPriv.slice(0, 4);
-            if (prefix.equals(S.MAINNET_XPRIVATE_KEY_PREFIX)) return true;
-            if (prefix.equals(S.TESTNET_XPRIVATE_KEY_PREFIX)) return true;
-            if (prefix.equals(S.MAINNET_M49_XPRIVATE_KEY_PREFIX)) return true;
-            if (prefix.equals(S.TESTNET_M49_XPRIVATE_KEY_PREFIX)) return true;
-            if (prefix.equals(S.MAINNET_M84_XPRIVATE_KEY_PREFIX)) return true;
-            return prefix.equals(S.MAINNET_M84_XPRIVATE_KEY_PREFIX);
-        } catch (e) {
-            return false;
-        }
+        if (S.isString(xPriv)) xPriv = S.decodeBase58(xPriv, {checkSum: true, hex: false});
+        if (xPriv.length !== 78) return false;
+        let prefix = xPriv.slice(0, 4);
+        if (prefix.equals(S.MAINNET_XPRIVATE_KEY_PREFIX)) return true;
+        if (prefix.equals(S.TESTNET_XPRIVATE_KEY_PREFIX)) return true;
+        if (prefix.equals(S.MAINNET_M49_XPRIVATE_KEY_PREFIX)) return true;
+        if (prefix.equals(S.TESTNET_M49_XPRIVATE_KEY_PREFIX)) return true;
+        if (prefix.equals(S.MAINNET_M84_XPRIVATE_KEY_PREFIX)) return true;
+        return prefix.equals(S.TESTNET_M84_XPRIVATE_KEY_PREFIX);
     };
 
     S.isXPublicKeyValid = (xPub) => {
-        try {
-            if (S.isString()) xPub = S.decodeBase58(xPub, {checkSum: true, hex: false});
-            if (xPub.length !== 78) return false;
-            let prefix = xPub.slice(0, 4);
-            if (prefix.equals(S.MAINNET_XPUBLIC_KEY_PREFIX)) return true;
-            if (prefix.equals(S.TESTNET_XPUBLIC_KEY_PREFIX)) return true;
-            if (prefix.equals(S.MAINNET_M49_XPUBLIC_KEY_PREFIX)) return true;
-            if (prefix.equals(S.TESTNET_M49_XPUBLIC_KEY_PREFIX)) return true;
-            if (prefix.equals(S.MAINNET_M84_XPUBLIC_KEY_PREFIX)) return true;
-            return prefix.equals(S.TESTNET_M84_XPUBLIC_KEY_PREFIX);
-        } catch (e) {
-            return false;
-        }
+        if (S.isString(xPub)) xPub = S.decodeBase58(xPub, {checkSum: true, hex: false});
+        if (xPub.length !== 78) return false;
+        let prefix = xPub.slice(0, 4);
+        if (prefix.equals(S.MAINNET_XPUBLIC_KEY_PREFIX)) return true;
+        if (prefix.equals(S.TESTNET_XPUBLIC_KEY_PREFIX)) return true;
+        if (prefix.equals(S.MAINNET_M49_XPUBLIC_KEY_PREFIX)) return true;
+        if (prefix.equals(S.TESTNET_M49_XPUBLIC_KEY_PREFIX)) return true;
+        if (prefix.equals(S.MAINNET_M84_XPUBLIC_KEY_PREFIX)) return true;
+        return prefix.equals(S.TESTNET_M84_XPUBLIC_KEY_PREFIX);
     };
 
     S.pathXKeyTo_BIP32_XKey = (xKey, A = {}) => {
         ARGS(A, {base58: true});
-        if (S.isString()) xKey = S.decodeBase58(xKey, {checkSum: true, hex: false});
+        if (S.isString(xKey)) xKey = S.decodeBase58(xKey, {checkSum: true, hex: false});
         if (xKey.length !== 78) throw new Error("invalid extended key");
         let prefix = xKey.slice(0, 4);
         let newPrefix;
@@ -167,8 +157,9 @@ module.exports = function (S) {
         else if (prefix.equals(S.TESTNET_M49_XPUBLIC_KEY_PREFIX)) newPrefix = S.TESTNET_XPUBLIC_KEY_PREFIX;
         else if (prefix.equals(S.TESTNET_M84_XPUBLIC_KEY_PREFIX)) newPrefix = S.TESTNET_XPUBLIC_KEY_PREFIX;
         else if (prefix.equals(S.MAINNET_M49_XPRIVATE_KEY_PREFIX)) newPrefix = S.MAINNET_XPRIVATE_KEY_PREFIX;
-        else if (prefix.equals(S.TESTNET_M49_XPRIVATE_KEY_PREFIX)) newPrefix = S.MAINNET_XPRIVATE_KEY_PREFIX;
-        else if (prefix.equals(S.TESTNET_M84_XPRIVATE_KEY_PREFIX)) newPrefix = S.TESTNET_XPUBLIC_KEY_PREFIX;
+        else if (prefix.equals(S.TESTNET_M49_XPRIVATE_KEY_PREFIX)) newPrefix = S.TESTNET_XPRIVATE_KEY_PREFIX;
+        else if (prefix.equals(S.TESTNET_M84_XPRIVATE_KEY_PREFIX)) newPrefix = S.TESTNET_XPRIVATE_KEY_PREFIX;
+        else if (prefix.equals(S.MAINNET_M84_XPRIVATE_KEY_PREFIX)) newPrefix = S.MAINNET_XPRIVATE_KEY_PREFIX;
         else throw new Error("invalid extended key");
         if (A.base58) return S.encodeBase58(BC([newPrefix, xKey.slice(4)]), {checkSum: true});
         return BC([newPrefix, xKey.slice(4)]);
@@ -178,7 +169,7 @@ module.exports = function (S) {
         ARGS(A, {base58: true});
         if (!["BIP44", "BIP49", "BIP84"].includes(pathType))
             throw new Error("unsupported path type " + pathType);
-        if (S.isString()) xKey = S.decodeBase58(xKey, {checkSum: true, hex: false});
+        if (S.isString(xKey)) xKey = S.decodeBase58(xKey, {checkSum: true, hex: false});
         if (xKey.length !== 78) throw new Error("invalid extended key");
         let prefix = xKey.slice(0, 4);
         let newPrefix;
