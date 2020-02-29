@@ -234,6 +234,9 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             let e = "6afd4fd96ca02d0b7038429b77e8b32042fc205d031144054086130e8d83d981";
             equal("xprv9s21ZrQH143K4LAkSUTJ3JiZ4cJc1FyRxCbPoWTQVssiezx3gpav8iJdHggBTTUv37iQUrfNDYpGmTSP6zwFD2kJAFiUzpewivZUD6Jqdai",
                 createMasterXPrivateKey(mnemonicToSeed(entropyToMnemonic(e))))
+            equal(decodeBase58("xprv9s21ZrQH143K4LAkSUTJ3JiZ4cJc1FyRxCbPoWTQVssiezx3gpav8iJdHggBTTUv37iQUrfNDYpGmTSP6zwFD2kJAFiUzpewivZUD6Jqdai",
+                {checkSum: true, hex: false}).hex(),
+                createMasterXPrivateKey(mnemonicToSeed(entropyToMnemonic(e)), {base58: false}).hex())
         });
 
         it('xPrivateToXPublicKey', () => {
@@ -245,6 +248,17 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             xPriv = createMasterXPrivateKey(seed, {hex: false});
             equal("xpub661MyMwAqRbcFRtq6C9uK3bk7pmqc5ahhqDjxx6dfge6njx6jU9EhFwpLfiE6tQv8gjuez5PkQfxTZw4UUwwkut34JRYLWpJLNGPcUCGxj8",
                 xPrivateToXPublicKey(xPriv));
+            xPriv = "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47";
+            equal("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2",
+                xPrivateToXPublicKey(xPriv));
+
+            equal(decodeBase58("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2",
+                {checkSum: true, hex: false}).hex(),
+                xPrivateToXPublicKey(xPriv, {base58: false}).hex());
+
+            xPriv = "ttrv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47";
+            expect(() => xPrivateToXPublicKey(xPriv)).to.throw('invalid');
+
             m = "extend whip emerge audit drama pumpkin breeze weather torch image insane rigid";
             seed = mnemonicToSeed(m);
             xPriv = createMasterXPrivateKey(seed);
@@ -300,7 +314,123 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             let pub = "xpub6D9iUoivkBuLHZgAk4VJt7vy3hwvcToFKifxtdv124nN3YewvMGeKmEfxLVZFLTCzQLS9NBwUzFVi66w5YnHM5o3y9GwQJSfroev539tkUZ";
             equal(deriveXKey(pub, "m/0"), "xpub6FPUvcox6BxqQCt2GRHTdy5ehEKr3JRX1DjZTUutrRh8VsWNS6tfNZd5ZctuDZhm5dRdepkwBgz77p8dVmNuMbBifts556S6jy3gERc3Tfy");
             equal(deriveXKey(pub, "m/0/3/4"), "xpub6J7BeAMm9AYT56iBvZ8ceMksXimevjhcV9yCWM7UdkFZXWDvNHb7qLkFwwewtZp8bVKhsqZfHfvZN6KpT59BuQy4e93pP3AoXk8uzCu8aPJ");
+            equal(deriveXKey(pub, "m/0/3/4", {base58: false}).hex(),
+                decodeBase58("xpub6J7BeAMm9AYT56iBvZ8ceMksXimevjhcV9yCWM7UdkFZXWDvNHb7qLkFwwewtZp8bVKhsqZfHfvZN6KpT59BuQy4e93pP3AoXk8uzCu8aPJ",
+                    {checkSum: true, hex: false}).hex());
+            pub = "ppub6D9iUoivkBuLHZgAk4VJt7vy3hwvcToFKifxtdv124nN3YewvMGeKmEfxLVZFLTCzQLS9NBwUzFVi66w5YnHM5o3y9GwQJSfroev539tkUZ";
+            expect(() => xPrivateToXPublicKey(deriveXKey(pub, "m/0/3/4"))).to.throw('invalid');
         });
+        it('publicFromXPublicKey', () => {
+           equal(publicFromXPublicKey("xpub6BP3EN8n7YTGYKL7nK9yUekCr9ixHK3taG2ATSkE5XjM7K12YMigC9pqUhj2K2f4TRg8xvDfqpHsWsjBHoMdJ6QF9dfSeKALRiTFAi9dA5T"),
+               "02832b4cd1990dc9ffb7624bdc33e19061836f237f5ccd8730777a10bfca88944c");
+        });
+        it('privateFromXPrivateKey', () => {
+            equal(privateFromXPrivateKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM"),
+                "L2BfXTBFwabUYoGkXKeR34f3TBpcThLtnC8yf6ZURvM952x8sWmz");
+            equal(privateFromXPrivateKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47"),
+                "cNu63US2f9jLLwDeD9321q1S5xviXCxSyem2GkFJjcF8DTWxqteC");
+            equal(privateKeyToWif(privateFromXPrivateKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47",
+                {wif: false}), {testnet: true}),
+                 "cNu63US2f9jLLwDeD9321q1S5xviXCxSyem2GkFJjcF8DTWxqteC");
+            equal(privateKeyToWif(privateFromXPrivateKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM",
+                {wif: false}), {testnet: false}),
+                "L2BfXTBFwabUYoGkXKeR34f3TBpcThLtnC8yf6ZURvM952x8sWmz");
+            expect(() => privateFromXPrivateKey("qprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47")).to.throw('invalid');
+        });
+
+        it('isXPrivateKeyValid', () => {
+            equal(isXPrivateKeyValid("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM"), true);
+            equal(isXPrivateKeyValid("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47"), true);
+            equal(isXPrivateKeyValid("yprvAJXHiBz6oBHZouVo25rgayS7ss1FGAkAsPMrtpTX7DrAHqocTrusQmMNuA2VoJyxJ9jsfAQFRFoRrDFKAhNoVgvhLYSZ5LWqQJy7fYUzRW8"), true);
+            equal(isXPrivateKeyValid("uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD"), true);
+            equal(isXPrivateKeyValid("zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk"), true);
+            equal(isXPrivateKeyValid("vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe"), true);
+            equal(isXPrivateKeyValid("qprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe"), false);
+            equal(isXPrivateKeyValid(""), false);
+            equal(isXPrivateKeyValid("1212qsdbfnn,i;p/"), false);
+        });
+
+        it('isXPublicKeyValid', () => {
+            equal(isXPublicKeyValid("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X"), true);
+            equal(isXPublicKeyValid("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2"), true);
+            equal(isXPublicKeyValid("ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB"), true);
+            equal(isXPublicKeyValid("upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL"), true);
+            equal(isXPublicKeyValid("zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R"), true);
+            equal(isXPublicKeyValid("vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j"), true);
+            equal(isXPublicKeyValid("qpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j"), false);
+            equal(isXPublicKeyValid(""), false);
+            equal(isXPublicKeyValid("1212qsdbfnn,i;p/"), false);
+        });
+
+        it('pathXKeyTo_BIP32_XKey', () => {
+            equal(pathXKeyTo_BIP32_XKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X"),
+                "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+            equal(pathXKeyTo_BIP32_XKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2"),
+                "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+            equal(pathXKeyTo_BIP32_XKey("ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB"),
+                "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+            equal(pathXKeyTo_BIP32_XKey("upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL"),
+                "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+            equal(pathXKeyTo_BIP32_XKey("zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R"),
+                "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+            equal(pathXKeyTo_BIP32_XKey("vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j"),
+                "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+
+            equal(pathXKeyTo_BIP32_XKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM"),
+                "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+            equal(pathXKeyTo_BIP32_XKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47"),
+                "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+            equal(pathXKeyTo_BIP32_XKey("yprvAJXHiBz6oBHZouVo25rgayS7ss1FGAkAsPMrtpTX7DrAHqocTrusQmMNuA2VoJyxJ9jsfAQFRFoRrDFKAhNoVgvhLYSZ5LWqQJy7fYUzRW8"),
+                "xprv9yh2QXKBeVk5xcJgBj54NtLchtroKYkfxGqe7RZdjDUHEjzPDCkJnhhEsx4uoQL2tWd4ugogxbSsxvdkSzxnhTF6UCk8VRhM8auUGwuyZMC");
+            equal(pathXKeyTo_BIP32_XKey("uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD"),
+                "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+            equal(pathXKeyTo_BIP32_XKey("zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk"),
+                "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+            equal(pathXKeyTo_BIP32_XKey("vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe"),
+                "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+            expect(() => pathXKeyTo_BIP32_XKey("qprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47")).to.throw('invalid');
+
+            equal(encodeBase58(pathXKeyTo_BIP32_XKey("vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe",
+                {base58: false}), {checkSum: true}),
+                "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+
+        });
+
+        it('pathXKeyTo_BIP32_XKey', () => {
+            equal(BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP44"),
+                "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+            equal(BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP44"),
+                "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+            equal(BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP49"),
+                "ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB");
+            equal(BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP49"),
+                "upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL");
+            equal(BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP84"),
+                "zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R");
+            equal(BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP84"),
+                "vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j");
+
+
+            equal(BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP44"),
+                "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+            equal(BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP44"),
+                "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+
+            equal(BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP49"),
+                "yprvAHDx8XGoRrSTB8SmWeQbKbtyU62upUKY89cnSTEVuCaFHcV7FUZzGRAVeenKE4VjGvvbECTQFiMgfuiUykWzWGkPTd6ZXqLDc4odjkNZA2Z");
+            equal(BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP49"),
+                "uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD");
+
+            equal(BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP84"),
+                "zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk");
+            equal(encodeBase58(BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP84", {base58: false}), {checkSum: true}),
+                "vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe");
+
+            expect(() => BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP384")).to.throw('unsupported');
+            expect(() => BIP32_XKeyToPathXKey("kpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP84")).to.throw('invalid');
+
+        });
+
     });
 
     describe("Shamir secret sharing functions:", function () {

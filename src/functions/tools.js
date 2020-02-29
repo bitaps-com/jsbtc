@@ -96,6 +96,7 @@ module.exports = function (S) {
     };
 
     S.defArgs = function (n, v) {
+        if (!(n instanceof Object) && (n !== undefined)) throw new Error("Invalid named arguments object");
         for (let k in v) if (n[k] === undefined) n[k] = v[k];
     };
 
