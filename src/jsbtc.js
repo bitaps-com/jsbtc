@@ -13,6 +13,7 @@ const bip32 = require('./functions/bip32.js');
 const script = require('./functions/script.js');
 const Address = require('./classes/address.js');
 const Transation = require('./classes/transaction.js');
+const Wallet = require('./classes/wallet.js');
 
 module.exports = {
     __initTask: null,
@@ -50,6 +51,7 @@ module.exports = {
         script(scope);
         Address(scope);
         Transation(scope);
+        Wallet(scope);
 
         this.__initTask = "completed";
     },
@@ -60,7 +62,7 @@ module.exports = {
             });
         });
     },
-}
+};
 
 
 
