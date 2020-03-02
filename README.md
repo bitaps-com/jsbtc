@@ -21,3 +21,6 @@ JavaScript Bitcoin library
     // inside async function 
     var jsbtc = await jsbtc.asyncInit();
     ... </script>
+    
+### Examples
+    https://github.com/bitaps-com/jsbtc/blob/master/test/jsbtc.test.js
