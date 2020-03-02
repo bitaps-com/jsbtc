@@ -2657,6 +2657,170 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
     });
 
 
+    describe("Wallet class:", function () {
+        it('Wallet from master xPriv key', async () => {
+            let w = new Wallet({from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",});
+            equal(w.masterXPrivateKey, "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+            equal(w.accountXPrivateKey, "xprv9xy9pW6QriePuzgpsBLoRjSE5ZhzVpdkPNF4377deALRSQ4RJRfBDvfz2XuqHNYSHy175udJTUodKeYWusgqbK4sTuhb1EoB1mcWzKFQR4u");
+            equal(w.accountXPublicKey, "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk");
+            equal(w.externalChainXPrivateKey, "xprvA1LwXrHHrvp1QRhKRBkG82YoUKZmsmn887gH7fhgWYSc135bSdDdU7rhe73pkc95S24kL88vTXdQyjyNzAETQWkU2SBXn7zqJQgZgAvosx1");
+            equal(w.externalChainXPublicKey, "xpub6ELHwMpBhJNJcumnXDHGVAVY2MQGHEVyVLbsv47J4syasqQjzAXt1vBBVN8s1jxTKniP4NypmswJBsGK1PQQ49WvvrDNUtHYN8h9SX24nuV");
+            equal(w.internalChainXPrivateKey, "xprvA1LwXrHHrvp1Ub1i8zPEd7WPqmnbmd8K2dXihAqmdew6FaMSLMGdStw3UwjFsXYtngpoJoK4CwzV8GEBpCxDQeA54pY2XEy55qHVqWhWpDi");
+            equal(w.internalChainXPublicKey, "xpub6ELHwMpBhJNJh56BF1vEzFT8Pod6B5rAPrTKVZFPBzU58NgastaszhFXLBchcsuNwTZLrVgcAJGvrHRQBA33B3UcbRqWwYg3AVhVn7MoCzv");
+            equal(w.path, "m/44'/0'/0'/0");
+            equal(w.pathType, "BIP44");
+            equal(w.depth, 0);
+            w = new Wallet({from: "yprvABrGsX5C9jantnJDGKVwXWL5MWpqhaDPDrYX2xYCq6BMZSu2tN8DiZ9TXpU8ssQhYe1WRwZ9RDR8gMxndVp3yCeMRaZ7kSwbD6jPaq7NqCU",});
+            equal(w.masterXPrivateKey, "yprvABrGsX5C9jantnJDGKVwXWL5MWpqhaDPDrYX2xYCq6BMZSu2tN8DiZ9TXpU8ssQhYe1WRwZ9RDR8gMxndVp3yCeMRaZ7kSwbD6jPaq7NqCU");
+            equal(w.accountXPrivateKey, "yprvAKNoUVXZ3WtAnEuayKC5MnMSVvLqAjcrWb5n4FB5Mp5QHv2nQrFDNj8nAwx5kgiNPEZVgJmJhCK24axgrvH47oFSMzeB2E1jP9wtYYt4k55");
+            equal(w.accountXPublicKey, "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6");
+            equal(w.externalChainXPrivateKey, "yprvAKfNZUdQw7jVb7mt1b6CCE6b4VCwU35yW5DesrvBLJZhejkg1k6fnJhr4vrzcknzooULNWwGxi8eMgB6susaX4RiXfr7SU4tAd3yvy2rmag");
+            equal(w.externalChainXPublicKey, "ypub6YeixzAJmVHnobrM7cdCZN3KcX3RsVopsJ9FgFKnte6gXY5pZHQvL72KvCjRBxdAzXsQaii7CcPTooRrKeNDMe1fVaD3Z8DGinm58vgNV2z");
+            equal(w.internalChainXPrivateKey, "yprvAKfNZUdQw7jVdSM6BKgtELaDfCrhRgzHxFvnAfH26LxoE9jYYfybQGruxS2NezefRyEeH2s7oaj3LDarxRuqgQcPE5GHfZD6GgKLfWXaYvp");
+            equal(w.internalChainXPublicKey, "ypub6YeixzAJmVHnqvRZHMDtbUWxDEhBq9i9KUrNy3gdegVn6x4h6DHqx5BPoisYumVWgsM5f3ByH6bRVaLvJRfFKczg2QnRYBhWDEsQS7X8N73");
+            equal(w.path, "m/49'/0'/0'/0");
+            equal(w.pathType, "BIP49");
+            equal(w.depth, 0);
+
+            w = new Wallet({from: "zprvAWgYBBk7JR8Gk5VL6gHZjbRaXUyHeCCt8y4jpMS6D6ZEcYiG92HnLcobZ2Risn4cxH8KBR9hssmgZeaMMCE4mSKxHvFYLMm5Upo2yQjkycx",});
+            equal(w.masterXPrivateKey, "zprvAWgYBBk7JR8Gk5VL6gHZjbRaXUyHeCCt8y4jpMS6D6ZEcYiG92HnLcobZ2Risn4cxH8KBR9hssmgZeaMMCE4mSKxHvFYLMm5Upo2yQjkycx");
+            equal(w.accountXPrivateKey, "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM");
+            equal(w.accountXPublicKey, "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+            equal(w.externalChainXPrivateKey, "zprvAfRpmUXV8Bx8m14g129H28qNFL9DJ8GTNS2QqhqhgQ25mEo43oYKCHEn3sYFQb4mPfEU5QnwKZZui1z5fDy4h42sb3PDjYeiDfPUGDtCH8n");
+            equal(w.externalChainXPublicKey, "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+            equal(w.internalChainXPrivateKey, "zprvAfRpmUXV8Bx8osLms5d2EidSqJuhHMhcZUpao9zjrYE1aayF9BkHMX5DgnYtkHPsnoiEwVYasn1tW9xArUXkwMvB4tEx7A9Df752CLGkPPt");
+            equal(w.internalChainXPublicKey, "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+            equal(w.path, "m/84'/0'/0'/0");
+            equal(w.pathType, "BIP84");
+            equal(w.depth, 0);
+
+
+            w = new Wallet({from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",
+            path: "m/0'/0'"});
+            equal(w.masterXPrivateKey, "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+            equal(w.chainXPrivateKey, "xprv9xQsQ3WwFzzrPLvoafdumL9AV5fF6o74fGXLi3X7ByziXa11EFrYFwjC17BcNozBYY6p6f4ue7Cq2DCDd29dpYAwBecUR3hef63Xsjcsv2t");
+            equal(w.chainXPublicKey, "xpub6BQDoZ3q6NZ9bq1GghAv8U5u37VjWFpv2VSwWRvikKXhQNL9moAnok3frPogvw8GsN5T2ULjz4YoRPBVWi1EY9fGQpazwtQArRrYEHc8diy");
+            equal(w.path, "m/0'/0'");
+            equal(w.pathType, "custom");
+            equal(w.depth, 0);
+
+            w = new Wallet({from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",
+                path: "m/0"});
+            equal(w.masterXPrivateKey, "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+            equal(w.chainXPrivateKey, "xprv9vVvYweCjEDTRTFz9GNEKjcWEEtEPXAgF7tHWLixzJtsKS3T3RoUou7CV3YNfn9BJnr2hkSqHw78pktQszEXPeLEmrxgsLC3e6HfEDpjzUy");
+            equal(w.chainXPublicKey, "xpub69VGxTB6ZbmkdwLTFHuEgsZEnGiinytXcLotJj8aYeRrCENbay7jMhRgLHpCqjFa2BMRxgcoakR82JbfRAsUk16CmHE4B5NPs3YP1JeiSVj");
+            equal(w.path, "m/0");
+            equal(w.pathType, "custom");
+            equal(w.depth, 0);
+
+            // from non master private key
+            w = new Wallet({from: "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM"});
+            equal(w.masterXPrivateKey, undefined);
+            equal(w.accountXPrivateKey, "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM");
+            equal(w.accountXPublicKey, "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+            equal(w.externalChainXPrivateKey, "zprvAfRpmUXV8Bx8m14g129H28qNFL9DJ8GTNS2QqhqhgQ25mEo43oYKCHEn3sYFQb4mPfEU5QnwKZZui1z5fDy4h42sb3PDjYeiDfPUGDtCH8n");
+            equal(w.externalChainXPublicKey, "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+            equal(w.internalChainXPrivateKey, "zprvAfRpmUXV8Bx8osLms5d2EidSqJuhHMhcZUpao9zjrYE1aayF9BkHMX5DgnYtkHPsnoiEwVYasn1tW9xArUXkwMvB4tEx7A9Df752CLGkPPt");
+            equal(w.internalChainXPublicKey, "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+
+            equal(w.path, "m/84'/0'/0'/0");
+            equal(w.pathType, "BIP84");
+            equal(w.depth, 3);
+
+        });
+
+        it('Wallet from master xPub key', async () => {
+            let w = new Wallet({from: "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk"});
+            equal(w.accountXPublicKey, "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk");
+            equal(w.externalChainXPublicKey, "xpub6ELHwMpBhJNJcumnXDHGVAVY2MQGHEVyVLbsv47J4syasqQjzAXt1vBBVN8s1jxTKniP4NypmswJBsGK1PQQ49WvvrDNUtHYN8h9SX24nuV");
+            equal(w.internalChainXPrivateKey, "xpub6ELHwMpBhJNJh56BF1vEzFT8Pod6B5rAPrTKVZFPBzU58NgastaszhFXLBchcsuNwTZLrVgcAJGvrHRQBA33B3UcbRqWwYg3AVhVn7MoCzv");
+            equal(w.path, "m/44'/0'/0'/0");
+            equal(w.pathType, "BIP44");
+            equal(w.depth, 3);
+
+            w = new Wallet({from: "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6"});
+            equal(w.accountXPublicKey, "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6");
+            equal(w.externalChainXPublicKey, "ypub6YeixzAJmVHnobrM7cdCZN3KcX3RsVopsJ9FgFKnte6gXY5pZHQvL72KvCjRBxdAzXsQaii7CcPTooRrKeNDMe1fVaD3Z8DGinm58vgNV2z");
+            equal(w.internalChainXPrivateKey, "ypub6YeixzAJmVHnqvRZHMDtbUWxDEhBq9i9KUrNy3gdegVn6x4h6DHqx5BPoisYumVWgsM5f3ByH6bRVaLvJRfFKczg2QnRYBhWDEsQS7X8N73");
+            equal(w.path, "m/49'/0'/0'/0");
+            equal(w.pathType, "BIP49");
+            equal(w.depth, 3);
+
+            w = new Wallet({from: "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss"});
+            equal(w.accountXPublicKey, "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+            equal(w.externalChainXPublicKey, "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+            equal(w.internalChainXPrivateKey, "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+            equal(w.path, "m/84'/0'/0'/0");
+            equal(w.pathType, "BIP84");
+            equal(w.depth, 3);
+
+            w = new Wallet({from: "xpub661MyMwAqRbcFyBZXzFKgZBJjaWtAQwjfxwu3x3w1RLTP9QxBFGueHooMvsC5tyAcZKpMzxNVUHx1PpZayH74UUHfDMTK9sJ5NZMjB8fMeE",
+                            path: 'm'});
+
+            equal(w.chainXPublicKey, "xpub661MyMwAqRbcFyBZXzFKgZBJjaWtAQwjfxwu3x3w1RLTP9QxBFGueHooMvsC5tyAcZKpMzxNVUHx1PpZayH74UUHfDMTK9sJ5NZMjB8fMeE");
+            equal(w.path, "m");
+            equal(w.pathType, "custom");
+            equal(w.depth, 0);
+
+        });
+
+        it('Wallet from mnemonic', async () => {
+            let w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select"})
+            equal(w.masterXPrivateKey, "zprvAWgYBBk7JR8Gj6Fyh7avt7VXDTaKuFtEUVYfanib1btw1hR5DNsbmpAJQuH8wXje8oCBAh182uNsu78TSW5DEm7DHXGugYYCzX571phh8sd");
+            equal(w.accountXPrivateKey, "zprvAds6aiRSB28DPqfPXm381XhejQT74yrcMYFVxKUq3RN6zdfHYhe2kdCfMVN6xizS6TjM2e9usWXBFAfzyof3jEpuw1SBbaN9ZeLTVnifWcN");
+            equal(w.accountXPublicKey, "zpub6rrSzDxL1PgWcKjrdna8NfePHSHbUSaTimB6khtSbku5sRzS6ExHJRX9CnQ3YZc5mFDpq3cccw3Pt9KpoX2irELqhMEuzRpaLYqnrhqXqtR");
+            equal(w.externalChainXPrivateKey, "zprvAfHTy9snayGyFCFZpHPuGDVTDhiQSAPU1yPT5Q8W6vnzAFoYP3yXDVCcGRUVw74SUXL9MBh4YEovtjyHymr2jnE9J3EFpqHjJmN9mp7cFWq");
+            equal(w.externalChainXPublicKey, "zpub6tGpNfQgRLqGTgL2vJvudMSBmjYtqd7KPCK3snY7fGKy348gvbHmmHX67imLvMRewEGMVL45oJdWk47B1ykpZSPAcYCf1Yajphh23MoAoSM");
+            equal(w.internalChainXPrivateKey, "zprvAfHTy9snayGyHoJXhR8ASoqSyQ2kuJx9yAPKVjdBTT6c47zKktR19sjXkzbumvB6S9Yh6PdYgXCZszypCmtrvjrBTCi7dy488mfdZFMpYQy");
+            equal(w.internalChainXPublicKey, "zpub6tGpNfQgRLqGWHNzoSfAownBXRsFJmg1LPJvJ82o1ndavvKUJRjFhg41cGEYXjVDqx5MGb122nSDdSykH1GKa4Cm6ADZBg8MiwputCcQgHv");
+            equal(w.mnemonic, "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select");
+            equal(w.path, "m/84'/0'/0'/0");
+            equal(w.pathType, "BIP84");
+            equal(w.depth, 0);
+
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3});
+            equal(combineMnemonic(w.mnemonicShares), w.mnemonic);
+
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"BIP44"});
+            equal(w.masterXPrivateKey, "xprv9s21ZrQH143K2Vsk2Q1gTwJWsXHS21uEeGWE1zvpFb9AuVnci4YUXgr2NVMxwiRoKWxZfjp17afn8XuL17FBeHk1Yqt4WiuET4wpEcwY7ku");
+            equal(w.accountXPrivateKey, "xprv9zHPDQ6wBZ4QzGCNzsjKpEMG6PgQZ8C7esLQRLjqZj22rbeaTc1cQ39hj9oRkFT5zs2yJwdTNnnjqTqp2i1gGod4cShNEJrkFf92rtcvm1r");
+            equal(w.accountXPublicKey, "xpub6DGjcudq1vciCkGr6uGLBNHzeRWtxauy26G1Dj9T84Z1jPyj19KrwqUBaS1cSJTMJwTn7pwiGae2vf5GyjXGaF2VMc1mrX6eavUARaiZoiY");
+            equal(w.externalChainXPrivateKey, "xprvA1PF3AySergC7tBPGw3y6Q7b5hwBu26Av7TTmfF2xRKg283YiWuAY8a7WYmXja26cjU19nXwFCKGeqVUFnYggQ8TbJ7DSJkZLDA6mYMxH2o");
+            equal(w.externalChainXPublicKey, "xpub6ENbSgWLVEEVLNFrNxayTY4KdjmgJUp2HLP4a3eeWkretvNhG4DR5vtbMq2UfT1yGDmrkfy2Df4c4tCpGCUj7dGCvAuCea3GsznkzfwVT1p");
+            equal(w.internalChainXPrivateKey, "xprvA1PF3AySergC9m5gadK9JQdCHMBfpGUEsqdD2rP7vxoqDudvLPDrZsJc2ZeeLHhLQ5A94v2updumYivjRhWXxyyT4Ad8DNMDKkkvyLaDJQj");
+            equal(w.internalChainXPublicKey, "xpub6ENbSgWLVEEVNFA9ger9fYZvqP2ADjC6F4YoqEnjVJLp6hy4svY77fd5sqJ573XNTQ1LTnQQiRj2MWMdoGm2CW3CANLZyquGASx2dURRKD8");
+            equal(w.mnemonic, "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select");
+            equal(w.path, "m/44'/0'/0'/0");
+            equal(w.pathType, "BIP44");
+            equal(w.depth, 0);
+        });
+
+        it('Wallet getAddress method', async () => {
+            let w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"BIP44"});
+            equal(w.getAddress(0).privateKey, 'L45mfkreqWrCfjdttVv7WU69MSmmw38FZvcSwg66thqm9J9PK9KZ');
+            equal(w.getAddress(0).publicKey, '02a933ce23a6b48dfb4621e8c71cc1541993318ce667c569b8affd2278ac24aa84');
+            equal(w.getAddress(0).address, '17GdQe4Cc8bA2LdNqnEs5Bg4aX1fDe2bS9');
+            equal(w.getAddress(0, false).address, '1LiMan5g9YXqchuTYZ7ty1isjVH7VewkvT');
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"BIP49"});
+            equal(w.getAddress(0).address, '3EDe79YchJeaAjSkHem5NyMqTMHfm91osd');
+            equal(w.getAddress(0, false).address, '36WLfXx7Jj17GVHbQcMunCVQ7dhKuKEmPb');
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"BIP84"});
+            equal(w.getAddress(0).address, 'bc1qk2k3lgzhpu227p9fvju6tnkxjxfrqef3mxurze');
+            equal(w.getAddress(0, false).address, 'bc1qaksfv2t58actx25pr9mnnavsnkxp5sp5uwtzca');
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"m/0'/0'"});
+            equal(w.getAddress(0).address, '1Bwi9boQTQ57XVpa71GcX8MvjB1onTKqep');
+            w = new Wallet({from:"diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+                threshold: 2, shares:3, path:"m/0'/0'", hardenedAddresses: true});
+            equal(w.getAddress(0).address, '1BQHhRpCAXmAVucAmQvZpj6uPkoh2dNQjh');
+        });
+    });
+
 
 });
 
