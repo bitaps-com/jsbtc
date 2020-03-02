@@ -8,8 +8,6 @@
 JavaScript Bitcoin library
 
 
-Under development
-
 ### Build:
     npm install jsbtc.js
     npm run build:wasm:prebuild
