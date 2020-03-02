@@ -7,6 +7,7 @@
 
 JavaScript Bitcoin library
 
+Crypto secp256k1 + wasm. Implemented: bip32, bip39, bip44, bip49, bip84, bip141. NIST random generation tests on the fly for entropy. Shamir's secret sharing for mnemonic.
 
 ### Build:
     npm install jsbtc.js
@@ -16,7 +17,7 @@ JavaScript Bitcoin library
     npm run build:web
  
 ### Use in browser:
-    <script src="jsbtc.test.js"></script>
+    <script src="jsbtc.web.min.js"></script>
     <script> ...
     // inside async function 
     var jsbtc = await jsbtc.asyncInit();
