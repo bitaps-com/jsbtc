@@ -210,7 +210,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             let s = splitMnemonic(3, 5, m);
             equal(m, combineMnemonic(s));
 
-            for (let q = 0; q < 50; q++) {
+            for (let q = 0; q < 10; q++) {
                 let t =  Math.floor(Math.random() * (10  )) + 2;
                 let i =  Math.floor(Math.random() * (t - 2 )) + 2;
                 let m = entropyToMnemonic(generateEntropy());
