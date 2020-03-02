@@ -2,7 +2,7 @@
 
 [![travis build](https://img.shields.io/travis/bitaps-com/jsbtc?style=plastic)](https://travis-ci.org/bitaps-com/jsbtc)
 [![codecov coverage](https://img.shields.io/codecov/c/github/bitaps-com/jsbtc/beta?style=plastic)](https://codecov.io/gh/bitaps-com/jsbtc)
-[![version](https://img.shields.io/npm/v/jsbitcoin/beta?style=plastic)](https://www.npmjs.com/package/jsbitcoin/v/1.0.0)
+[![version](https://img.shields.io/npm/v/jsbtc.js/latest?style=plastic)](https://www.npmjs.com/package/jsbtc.js/v/latest)
 
 
 JavaScript Bitcoin library
