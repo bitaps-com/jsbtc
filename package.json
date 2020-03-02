@@ -1,6 +1,6 @@
 {
   "name": "jsbtc.js",
-  "version": "v1.0.0",
+  "version": "v1.0.2",
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
@@ -8,11 +8,12 @@
     "build:wasm:pre": "docker  build  -f ./Dockerfile.wasm -t wasm-builder .",
     "build:wasm": "docker run --rm --name wasm-builder -v $(pwd)/:/jsbtc/ -it wasm-builder /jsbtc/build.wasm.sh",
     "commit": "git-cz",
-    "check-coverage": "nyc check-coverage --statements 50 --branches 50 --functions 30 --lines 50",
+    "check-coverage": "nyc check-coverage  --statements 80 --branches 70 --functions 80 --lines 90 ",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "watch:test": "npm t -- -w",
     "test": "mocha test/jsbtc.test.js --require @babel/register ",
-    "cover": "nyc npm t",
+    "cover": "nyc npm t ",
+    "cover:report": "nyc report --reporter=lcov --reporter=text",
     "prebuild": "rimraf dist",
     "build": "babel --copy-files -d dist --ignore *.test.js src",
     "build:web": "npm run prebuild;webpack --output-filename jsbtc.web.min.js ",
@@ -23,7 +24,7 @@
     "url": "https://github.com/bitaps-com/jsbtc.git"
   },
   "keywords": [
-    "bitcoin"
+    "bitcoin", "wasm", "bip32", "bip39", "bip44", "bip49",  "bip84", "bip141", "shamir's secret sharing", "secp256k1"
   ],
   "files": [
     "dist",
