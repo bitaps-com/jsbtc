@@ -2311,10 +2311,9 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             tx.addInput({txId: "cd1f5bc269e1e5834e9d9fcb979e86d9db8296b01dc12ebead8b02a4c1ba5d1c"});
             tx.addOutput({value: 120000000, address: "mouKMbHPwWLUCmgqKnkHT7PR3KdF4CNREh"});
             tx.signInput(0, {privateKey: [a1.privateKey, a9.privateKey], redeemScript: a.script, witnessVersion: null});
-            // console.log(tx)
+
             let rtx = tx.serialize();
 
-            // console.log(">", rtx)
             tx = new Transaction({rawTx: rtx, testnet: true});
             tx.signInput(0, {privateKey: a3.privateKey, redeemScript: a.script, witnessVersion: null});
             rtx = tx.serialize();

@@ -45,7 +45,7 @@ module.exports = function (S) {
         return key;
     };
 
-    S.__decodeParh = (p, subPath = false) => {
+    S.__decodePath = (p, subPath = false) => {
         p = p.split('/');
         if (!subPath)
             if (p[0]!=='m')  throw new Error("invalid path");
@@ -61,7 +61,7 @@ module.exports = function (S) {
     S.deriveXKey = (xKey, path, A = {}) => {
         ARGS(A, {base58: true, subPath: false});
         if (S.isString(xKey))  xKey = S.decodeBase58(xKey, {checkSum: true, hex:false});
-        path = S.__decodeParh(path, A.subPath);
+        path = S.__decodePath(path, A.subPath);
 
         if (S.xKeyType(xKey) === "private") for (let p of path) xKey = S.__deriveChildXPrivateKey(xKey, p);
         else  for (let p of path) xKey = S.__deriveChildXPublicKey(xKey, p);

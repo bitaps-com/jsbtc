@@ -1,11 +1,11 @@
-# jsbtc
+<img src="docs/img/jsbtc.png" width="100">
+
+## JavaScript Bitcoin library
 
 [![travis build](https://img.shields.io/travis/bitaps-com/jsbtc?style=plastic)](https://travis-ci.org/bitaps-com/jsbtc)
 [![codecov coverage](https://img.shields.io/codecov/c/github/bitaps-com/jsbtc/beta?style=plastic)](https://codecov.io/gh/bitaps-com/jsbtc)
 [![version](https://img.shields.io/npm/v/jsbtc.js/latest?style=plastic)](https://www.npmjs.com/package/jsbtc.js/v/latest)
 
-
-JavaScript Bitcoin library
 
 Crypto secp256k1 + wasm. Implemented: bip32, bip39, bip44, bip49, bip84, bip141. NIST random generation tests on the fly for entropy. Shamir's secret sharing for mnemonic.
 
