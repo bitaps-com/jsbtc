@@ -82,6 +82,7 @@ module.exports = function (S) {
         let publicKeyPointer = malloc(64);
         crypto.HEAPU8.set(privateKey, privateKeyPointer);
         crypto._secp256k1_ec_pubkey_create(S.secp256k1PrecompContextSign, publicKeyPointer, privateKeyPointer);
+                free(privateKeyPointer);
         let outq = new BA(64);
         for (let i = 0; i < 64; i++) outq[i] = getValue(publicKeyPointer + i, 'i8');
         let pubLen = (A.compressed) ? 33 : 65;
@@ -96,7 +97,7 @@ module.exports = function (S) {
             out = new BA(pubLen);
             for (let i = 0; i < pubLen; i++) out[i] = getValue(publicKeySerializedPointer + i, 'i8');
         } else out = false;
-        free(privateKeyPointer);
+
         free(publicKeyPointer);
         free(pubLenPointer);
         free(publicKeySerializedPointer);
@@ -120,7 +121,7 @@ module.exports = function (S) {
         ARGS(A, {compressed: true, hex: true});
         key = S.getBuffer(key);
         tweak = S.getBuffer(tweak);
-        let keyP = malloc(key.length);
+        let keyP = malloc(65);
         let tweakP = malloc(tweak.length);
         crypto.HEAPU8.set(key, keyP);
         crypto.HEAPU8.set(tweak, tweakP);
@@ -128,8 +129,11 @@ module.exports = function (S) {
 
         let r = crypto._secp256k1_ec_pubkey_parse(S.secp256k1PrecompContextVerify, rawKeyP, keyP, key.length);
 
+
         if (!r) throw new Error('publicKeyAdd failed');
         r = crypto._secp256k1_ec_pubkey_tweak_add(S.secp256k1PrecompContextVerify, rawKeyP, tweakP);
+        free(tweakP);
+
         if (!r) throw new Error('publicKeyAdd failed');
         let flag = (A.compressed) ? S.SECP256K1_EC_COMPRESSED : S.SECP256K1_EC_UNCOMPRESSED;
         let pubLen = (A.compressed) ? 33 : 65;
@@ -138,14 +142,15 @@ module.exports = function (S) {
         crypto.HEAPU8.set([pubLen], pubLenPointer);
         r = crypto._secp256k1_ec_pubkey_serialize(S.secp256k1PrecompContextVerify,
             publicKeySerializedPointer, pubLenPointer, rawKeyP, flag);
+        free(rawKeyP);
+        free(keyP);
+
         let out;
         if (r) {
             out = new BA(pubLen);
             for (let i = 0; i < pubLen; i++) out[i] = getValue(publicKeySerializedPointer + i, 'i8');
         } else out = false;
-        free(keyP);
-        free(tweakP);
-        free(rawKeyP);
+
         free(pubLenPointer);
         free(publicKeySerializedPointer);
         if (out === false) throw new Error('publicKeyAdd failed');

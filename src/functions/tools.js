@@ -78,7 +78,7 @@ module.exports = function (S) {
             if (m.read === undefined) return S.Buffer.from(m);
             return m;
         }
-        if (isString(m)) {
+        if (S.isString(m)) {
             if (m.length === 0) return S.Buffer(0);
             encoding = encoding.split('|');
             for (let e of encoding) {
