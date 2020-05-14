@@ -21,12 +21,15 @@ module.exports = function (S) {
             if (A.path === "BIP84") {
                 this.pathType = "BIP84";
                 this.path = `m/84'/0'/${this.account}'/${this.chain}`;
+                this.__account_path = `m/84'/0'/${this.account}'`;
             } else if (A.path === "BIP49") {
                 this.pathType = "BIP49";
                 this.path = `m/49'/0'/${this.account}'/${this.chain}`;
+                this.__account_path = `m/49'/0'/${this.account}'`;
             } else if (A.path === "BIP44") {
                 this.pathType = "BIP44";
                 this.path = `m/44'/0'/${this.account}'/${this.chain}`;
+                this.__account_path = `m/44'/0'/${this.account}'`;
             } else if (A.path !== null) {
                 this.pathType = "custom";
                 this.path = A.path;
@@ -50,6 +53,7 @@ module.exports = function (S) {
                 if (this.pathType === null) {
                     this.pathType = "BIP84";
                     this.path = `m/84'/0'/${this.account}'/${this.chain}`;
+                    this.__account_path = `m/84'/0'/${this.account}'`;
                 }
                 if ((this.pathType !== null) && (this.pathType !== "custom"))
                     from = S.BIP32_XKeyToPathXKey(from, this.pathType);
@@ -62,10 +66,14 @@ module.exports = function (S) {
                         this.pathType = S.xKeyDerivationType(from);
                         if (this.pathType === "BIP84") {
                             this.path = `m/84'/0'/${this.account}'/${this.chain}`;
+
+                            this.__account_path = `m/84'/0'/${this.account}'`;
                         } else if (this.pathType === "BIP49") {
                             this.path = `m/49'/0'/${this.account}'/${this.chain}`;
+                            this.__account_path = `m/49'/0'/${this.account}'`;
                         } else if (this.pathType === "BIP44") {
                             this.path = `m/44'/0'/${this.account}'/${this.chain}`;
+                            this.__account_path = `m/44'/0'/${this.account}'`;
                         } else {
                             this.path = "m"
                         }
@@ -81,10 +89,13 @@ module.exports = function (S) {
                         this.pathType = S.xKeyDerivationType(from);
                         if (this.pathType === "BIP84") {
                             this.path = `m/84'/0'/${this.account}'/${this.chain}`;
+                            this.__account_path = `m/84'/0'/${this.account}'`;
                         } else if (this.pathType === "BIP49") {
                             this.path = `m/49'/0'/${this.account}'/${this.chain}`;
+                            this.__account_path = `m/49'/0'/${this.account}'`;
                         } else if (this.pathType === "BIP44") {
                             this.path = `m/44'/0'/${this.account}'/${this.chain}`;
+                            this.__account_path = `m/44'/0'/${this.account}'`;
                         } else {
                             this.path = "m"
                         }
@@ -110,6 +121,7 @@ module.exports = function (S) {
                     if (this.pathType === null) {
                         this.pathType = "BIP84";
                         this.path = `m/84'/0'/${this.account}'/${this.chain}`;
+                        this.__account_path = `m/84'/0'/${this.account}'`;
                     }
                     if ((this.pathType !== null) && (this.pathType !== "custom"))
                         from = S.BIP32_XKeyToPathXKey(from, this.pathType);
@@ -191,7 +203,7 @@ module.exports = function (S) {
     }
 
     Wallet.prototype.setChain = function (i) {
-        self.chain = i;
+        this.chain = i;
     };
 
     Wallet.prototype.getAddress = function (i, external = true) {
@@ -199,6 +211,7 @@ module.exports = function (S) {
         let h = (this.hardenedAddresses) ? "'" : "";
         if (this.pathType !== 'custom') {
             let p = "m/" + i + h;
+            r.path = `${this.__account_path}/${this.chain +!external}/${i}${h}`;
             if (external) {
                 if (this.externalChainXPrivateKey !== undefined) {
                     let key = S.deriveXKey(this.externalChainXPrivateKey, p);
@@ -223,6 +236,7 @@ module.exports = function (S) {
         } else {
 
             let p = "m/" + i + h;
+            r.path = this.path + "/" + i + h;
             if (this.chainXPrivateKey !== undefined) {
                 let key = S.deriveXKey(this.chainXPrivateKey, p);
                 r.privateKey = S.privateFromXPrivateKey(key);
