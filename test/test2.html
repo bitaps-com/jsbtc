@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mocha Tests</title>
+
+</head>
+<body>
+<h1>Simple test with console output redirected to web page</h1>
+<p id="log" style="font-size: 2em;">
+
+</p>
+
+
+<!-- load code you want to test here -->
+<script src="../dist/jsbtc.web.min.js?9899299"></script>
+
+<script>
+
+    // example init lib to btc object
+
+    (async function () {
+        var btc = {};
+        await jsbtc.asyncInit(btc);
+        runTest(btc);
+
+
+    })();
+
+    (function () {
+        var old = console.log;
+        var logger = document.getElementById('log');
+        console.log = function (...Args) {
+            for (message of Args) {
+
+
+                if (typeof message === 'object') {
+                    logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(message) : message) + ' ';
+                } else {
+                    logger.innerHTML += message + ' ';
+                }
+
+            }
+            logger.innerHTML += '<br />';
+        }
+    })();
+
+    function runTest(btc) {
+        console.log(" generateEntropy 256 bit:", btc.generateEntropy().length === 64);
+        console.log(" generateEntropy 224 bit:", btc.generateEntropy({strength: 224}).length === 56);
+        console.log(" generateEntropy 192 bit:", btc.generateEntropy({strength: 192}).length === 48);
+        console.log(" generateEntropy 160 bit:", btc.generateEntropy({strength: 160}).length === 40);
+        console.log(" generateEntropy 128 bit:", btc.generateEntropy({strength: 128}).length === 32);
+        let m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce point skate life truly hockey scout assault lab impulse boss';
+        let e = "ff46716c20b789aff26b59a27b74716699457f29d650815d2db1e0a0d8f81c88";
+
+        console.log("entropyToMnemonic", btc.entropyToMnemonic(e) === m);
+        console.log("mnemonicToEntropy", btc.mnemonicToEntropy(m) === e);
+        for (let i = 0; i < 1000; i++) {
+            let e = btc.generateEntropy();
+            let m = btc.entropyToMnemonic(e);
+            if (btc.mnemonicToEntropy(m) !== e) console.log("error");
+        }
+
+        e = "000000717ded6e3da64ad190e524dcdd0980099415b7a878d13fdd7583ff4da9";
+        m = btc.entropyToMnemonic(e);
+        console.log(btc.mnemonicToEntropy(m) === e);
+        e = "000000007ded6e3da64ad190e524dcdd0980099415b7a878d13fdd7583000000";
+        m = btc.entropyToMnemonic(e);
+        console.log(btc.mnemonicToEntropy(m) === e);
+
+        m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+        e = '61dda75bc2c63fa6747a500ddab20358';
+
+        console.log(btc.entropyToMnemonic(e) === m);
+        console.log(btc.mnemonicToEntropy(m) === e);
+
+        for (let i = 0; i < 10; i++) {
+            let e = btc.generateEntropy({strength: 128});
+            let m = btc.entropyToMnemonic(e);
+            if (btc.mnemonicToEntropy(m) !== e) console.log("error");
+        }
+        console.log("128 ok");
+        for (let i = 0; i < 10; i++) {
+            let e = btc.generateEntropy({strength: 160});
+            let m = btc.entropyToMnemonic(e);
+            if (btc.mnemonicToEntropy(m) !== e) console.log("error");
+        }
+        console.log("160 ok");
+        for (let i = 0; i < 10; i++) {
+            let e = btc.generateEntropy({strength: 192});
+            let m = btc.entropyToMnemonic(e);
+            if (btc.mnemonicToEntropy(m) !== e) console.log("error");
+        }
+        console.log("192 ok");
+        for (let i = 0; i < 10; i++) {
+            let e = btc.generateEntropy({strength: 224});
+            let m = btc.entropyToMnemonic(e);
+            if (btc.mnemonicToEntropy(m) !== e) console.log("error");
+        }
+        console.log("224 ok");
+
+        e = "6afd4fd96ca02d0b7038429b77e8b32042fc205d031144054086130e8d83d981";
+        console.log("xprv9s21ZrQH143K4LAkSUTJ3JiZ4cJc1FyRxCbPoWTQVssiezx3gpav8iJdHggBTTUv37iQUrfNDYpGmTSP6zwFD2kJAFiUzpewivZUD6Jqdai" ===
+            btc.createMasterXPrivateKey(btc.mnemonicToSeed(btc.entropyToMnemonic(e))));
+        console.log(btc.decodeBase58("xprv9s21ZrQH143K4LAkSUTJ3JiZ4cJc1FyRxCbPoWTQVssiezx3gpav8iJdHggBTTUv37iQUrfNDYpGmTSP6zwFD2kJAFiUzpewivZUD6Jqdai",
+            {checkSum: true, hex: false}).hex() ===
+            btc.createMasterXPrivateKey(btc.mnemonicToSeed(btc.entropyToMnemonic(e)), {base58: false}).hex());
+
+        m = "debate pattern hotel silly grit must bronze athlete kitten salute salmon cat control hungry little";
+        let seed = btc.mnemonicToSeed(m);
+        let xPriv = btc.createMasterXPrivateKey(seed, {hex: true});
+        console.log("xpub661MyMwAqRbcFRtq6C9uK3bk7pmqc5ahhqDjxx6dfge6njx6jU9EhFwpLfiE6tQv8gjuez5PkQfxTZw4UUwwkut34JRYLWpJLNGPcUCGxj8" ===
+            btc.xPrivateToXPublicKey(xPriv));
+        xPriv = btc.createMasterXPrivateKey(seed, {hex: false});
+        console.log("xpub661MyMwAqRbcFRtq6C9uK3bk7pmqc5ahhqDjxx6dfge6njx6jU9EhFwpLfiE6tQv8gjuez5PkQfxTZw4UUwwkut34JRYLWpJLNGPcUCGxj8" ===
+            btc.xPrivateToXPublicKey(xPriv));
+        xPriv = "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47";
+        console.log("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2" ===
+            btc.xPrivateToXPublicKey(xPriv));
+
+        console.log(btc.decodeBase58("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2",
+            {checkSum: true, hex: false}).hex() ===
+            btc.xPrivateToXPublicKey(xPriv, {base58: false}).hex());
+
+        m = "extend whip emerge audit drama pumpkin breeze weather torch image insane rigid";
+        seed = btc.mnemonicToSeed(m);
+        xPriv = btc.createMasterXPrivateKey(seed);
+        console.log("xpub661MyMwAqRbcEodnzMiUBjyAnsYRzMKSAo8e2APk4Z6qXbtWPFxtDPGLeuPRJ2NJaWQBYn6weuExWuNDsNvUWLyRXmSHBdzwZysmJoLatK7" ===
+            btc.xPrivateToXPublicKey(xPriv));
+        m = "toast exchange giggle car seminar beyond federal debate donate confirm topple enough unusual corn photo casual section only";
+        seed = btc.mnemonicToSeed(m);
+        xPriv = btc.createMasterXPrivateKey(seed);
+        console.log("xpub661MyMwAqRbcFVMC8d2uwpiGSh16zofbhi8PDzNBantpk5qNpRr1kK3mpgScnqUp4VDW9iFwt6gVgQcFp3QjfUYSNee8n9V2SZiMtotWfDm" ===
+            btc.xPrivateToXPublicKey(xPriv));
+        m = "festival life pudding glide champion enhance sponsor phone panel permit mean guard chunk hedgehog view foam thought pride regular invite rice";
+        seed = btc.mnemonicToSeed(m);
+        xPriv = btc.createMasterXPrivateKey(seed);
+        console.log("xpub661MyMwAqRbcH5iGdcfyAo1JvG6eweRhYgNvnMv7QBYZ7KNW32CKh1W3kxa2t4MHZhLt71EMhMPEifvxLmo7SKh5wmYxUDKVDeWbuHDcDsb" ===
+            btc.xPrivateToXPublicKey(xPriv));
+        m = "window travel aunt result badge two federal defense weasel window nothing life enforce warrior rubber stool parent elevator jazz lava fame blade prefer utility";
+        seed = btc.mnemonicToSeed(m);
+        xPriv = btc.createMasterXPrivateKey(seed);
+        console.log("xpub661MyMwAqRbcG5AjafHzq3GsaoY2PwudLxECQ4hrkfV2K5JrnWQj1puS1Ci5DLNDTQrdU7y1ibkBFdQ2CaZnV9MHXX78gbtUXASAuQ3kiJe" ===
+            btc.xPrivateToXPublicKey(xPriv));
+
+        xPriv = "xprv9s21ZrQH143K3CSC8gBJRWPHPzi8Y17VzhuMGgSyyiGYzbbCnmUE1zpR2iQCzVGPGAQBy2m7LTEtPAvfB6p2ECoQBAWtQYgYHpn1UFQv6Mi";
+        xPriv = btc.decodeBase58(xPriv, {hex: false, checkSum: true});
+        console.log("xprv9uxHkb3zFYjmC9AshDxocSv8SWphDkWq7VpNauF8hhGNMuqK2o4AKhhhuFADy1H5pVVAdZJCnyDmjZBZmgUR8aciXXELWfU6tCF4BCrhz5m" ===
+            btc.encodeBase58(btc.__deriveChildXPrivateKey(xPriv, 1), {checkSum: true}));
+        console.log("xprv9uxHkb3zFYjm9WnMk636CLyiCt2h6mgVR2u5iy8PgAkPW1xYCuUGYUzU6A4HWS7hDhKVQufiymoj9oYjqg1h7331YjwVTfSBN97gSo65DiV" ===
+            btc.encodeBase58(btc.__deriveChildXPrivateKey(xPriv, 0), {checkSum: true}));
+        console.log("xprv9uxHkb3zFYzv3TK97XAQ5YykGBuFgMo5mKzjvQKuzbPf3FBeVgTC2ozTtspLBU2X4HWWFDocpB1sHjSXJby89m6cKhLhWUdhUWdF4o39kw4" ===
+            btc.encodeBase58(btc.__deriveChildXPrivateKey(xPriv, 20000), {checkSum: true}));
+        console.log("xprv9uxHkb3zFzs4rMGo9d25NcHCyePGswYHY6fMk76DzbZ5iCucy7VtdjYa1o4n28bnnGLW4ComhMjNiUKxbgq6p6vc9zwHfHb1fvdhAvsURty" ===
+            btc.encodeBase58(btc.__deriveChildXPrivateKey(xPriv, 2000000), {checkSum: true}));
+
+
+        xPub = "xpub661MyMwAqRbcFgWfEhiJneL1x2YcwTqMMvpx54rbY3oXsPvMLJnUZo8tsxpGFsUrFW9zMFKAGzaDDy1pR2uoohh1CW24Se1vkSnXRMqPV9R";
+        xPub = btc.decodeBase58(xPub, {hex: false, checkSum: true});
+        console.log("xpub68weA6at5vJ4Mzrpr7a6ZUvSkusBWEQLnFpgXMY1EWHNNpHgkSnX6HJwwSjN7z9PFrgTLK6gtWZ37o3b2ZAQSc4V9GdxdjVTjymSVit5Sai" ===
+            btc.encodeBase58(btc.__deriveChildXPublicKey(xPub, 0), {checkSum: true}));
+        console.log("xpub68weA6at5vJ5fuUhS2bUgtse4cswz9VpU3UJAY93oUwpP8P4oDhTtGKizXsosJH99RWnnyD9txQXBAcyAEiykRDAoyHLCcpW2vkrnsSymDQ" ===
+            btc.encodeBase58(btc.__deriveChildXPublicKey(xPub, 30), {checkSum: true}));
+
+
+        root = "xprv9s21ZrQH143K39fFeGf2cWBTZ6NVj6ZsQ7nEK9f5pWqt4YwHPhnCF3GtMsPNA9cCz1j8j9Zs493ejkzJqUWqwGqQ2J8iNc1jFtFPbie7bZ4";
+        console.log(btc.deriveXKey(root, "m/0") === "xprv9v7aNJTyjf9pZ2e1XwaKwTaiYqmwy9C43GPrczk9NauP4aWYqeKh5UfE3ocfV92UGFKBbQNZib8TDtqD8y5axYQMUzVJzHXphdNF6Cc6YM3");
+        console.log(btc.deriveXKey(root, "m/0'") === "xprv9v7aNJU85KgnkrGKiEJMTnZJMSpbAvQdcUGm2q4s7Z2ZPA9iTwNdD92ESDXbxLt6WAsjaT5xHQNNgHBmwjgwscmPjE1dDuQ5rVC9Jowgu8q");
+        console.log(btc.deriveXKey(root, "m/1") === "xprv9v7aNJTyjf9pazc9j5X7CkK3t4ywxLzsWazZL9x8JE1f8f7dsv6xjtWEZN2cahUYqaEkr27oyGfc7Y8KG18B55j7h57W3SdiAvXcztzB7MV");
+        console.log(btc.deriveXKey(root, "m/44'/0'/0'") === "xprv9zAN5JC2upM319x3bsP9aa1jbE9MoyXNuSkm9rTggLBgUSHwsvigCrwb3VJHpkb5KLteb9jwCpXnk7kS5ac3Av8Vn5UG2PgTdrxb9wPeipW");
+        console.log(btc.deriveXKey(root, "m/44'/0'/1'") === "xprv9zAN5JC2upM355bhe2xJWyzEVg7SD15PxVkN6FWPTjFPAkKoNoxPmxvC76SK6k7HDc1WQhYaXYyEUTTuVLYbKomAna5pFbDJCMVzfKHfZUS");
+        pub = "xpub6D9iUoivkBuLHZgAk4VJt7vy3hwvcToFKifxtdv124nN3YewvMGeKmEfxLVZFLTCzQLS9NBwUzFVi66w5YnHM5o3y9GwQJSfroev539tkUZ";
+        console.log(btc.deriveXKey(pub, "m/0") === "xpub6FPUvcox6BxqQCt2GRHTdy5ehEKr3JRX1DjZTUutrRh8VsWNS6tfNZd5ZctuDZhm5dRdepkwBgz77p8dVmNuMbBifts556S6jy3gERc3Tfy");
+        console.log(btc.deriveXKey(pub, "m/0/3/4") === "xpub6J7BeAMm9AYT56iBvZ8ceMksXimevjhcV9yCWM7UdkFZXWDvNHb7qLkFwwewtZp8bVKhsqZfHfvZN6KpT59BuQy4e93pP3AoXk8uzCu8aPJ");
+        console.log(btc.deriveXKey(pub, "m/0/3/4", {base58: false}).hex() ===
+            btc.decodeBase58("xpub6J7BeAMm9AYT56iBvZ8ceMksXimevjhcV9yCWM7UdkFZXWDvNHb7qLkFwwewtZp8bVKhsqZfHfvZN6KpT59BuQy4e93pP3AoXk8uzCu8aPJ",
+                {checkSum: true, hex: false}).hex());
+
+        console.log(btc.publicFromXPublicKey("xpub6BP3EN8n7YTGYKL7nK9yUekCr9ixHK3taG2ATSkE5XjM7K12YMigC9pqUhj2K2f4TRg8xvDfqpHsWsjBHoMdJ6QF9dfSeKALRiTFAi9dA5T") ===
+            "02832b4cd1990dc9ffb7624bdc33e19061836f237f5ccd8730777a10bfca88944c");
+
+        console.log(btc.privateFromXPrivateKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM") ===
+            "L2BfXTBFwabUYoGkXKeR34f3TBpcThLtnC8yf6ZURvM952x8sWmz");
+        console.log(btc.privateFromXPrivateKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47") ===
+            "cNu63US2f9jLLwDeD9321q1S5xviXCxSyem2GkFJjcF8DTWxqteC");
+        console.log(btc.privateKeyToWif(btc.privateFromXPrivateKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47",
+            {wif: false}), {testnet: true}) ===
+            "cNu63US2f9jLLwDeD9321q1S5xviXCxSyem2GkFJjcF8DTWxqteC");
+
+        console.log(btc.privateKeyToWif(btc.privateFromXPrivateKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM",
+            {wif: false})) ===
+            "L2BfXTBFwabUYoGkXKeR34f3TBpcThLtnC8yf6ZURvM952x8sWmz");
+
+
+        console.log(btc.isXPrivateKeyValid("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM") === true);
+        console.log(btc.isXPrivateKeyValid("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47") === true);
+        console.log(btc.isXPrivateKeyValid("yprvAJXHiBz6oBHZouVo25rgayS7ss1FGAkAsPMrtpTX7DrAHqocTrusQmMNuA2VoJyxJ9jsfAQFRFoRrDFKAhNoVgvhLYSZ5LWqQJy7fYUzRW8") === true);
+        console.log(btc.isXPrivateKeyValid("uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD") === true);
+        console.log(btc.isXPrivateKeyValid("zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk") === true);
+        console.log(btc.isXPrivateKeyValid("vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe") === true);
+        console.log(btc.isXPrivateKeyValid("qprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe") === false);
+        console.log(btc.isXPrivateKeyValid("") === false);
+        console.log(btc.isXPrivateKeyValid("1212qsdbfnn,i;p/") === false);
+
+
+        console.log(btc.isXPublicKeyValid("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X") === true);
+        console.log(btc.isXPublicKeyValid("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2") === true);
+        console.log(btc.isXPublicKeyValid("ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB") === true);
+        console.log(btc.isXPublicKeyValid("upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL") === true);
+        console.log(btc.isXPublicKeyValid("zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R") === true);
+        console.log(btc.isXPublicKeyValid("vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j") === true);
+        console.log(btc.isXPublicKeyValid("qpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j") === false);
+        console.log(btc.isXPublicKeyValid("") === false);
+        console.log(btc.isXPublicKeyValid("1212qsdbfnn,i;p/") === false);
+
+
+        console.log(btc.pathXKeyTo_BIP32_XKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X") ===
+            "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+        console.log(btc.pathXKeyTo_BIP32_XKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2") ===
+            "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+        console.log(btc.pathXKeyTo_BIP32_XKey("ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB") ===
+            "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+        console.log(btc.pathXKeyTo_BIP32_XKey("upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL") ===
+            "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+        console.log(btc.pathXKeyTo_BIP32_XKey("zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R") ===
+            "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+        console.log(btc.pathXKeyTo_BIP32_XKey("vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j") ===
+            "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+
+        console.log(btc.pathXKeyTo_BIP32_XKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM") ===
+            "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+        console.log(btc.pathXKeyTo_BIP32_XKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47") ===
+            "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+        console.log(btc.pathXKeyTo_BIP32_XKey("yprvAJXHiBz6oBHZouVo25rgayS7ss1FGAkAsPMrtpTX7DrAHqocTrusQmMNuA2VoJyxJ9jsfAQFRFoRrDFKAhNoVgvhLYSZ5LWqQJy7fYUzRW8") ===
+            "xprv9yh2QXKBeVk5xcJgBj54NtLchtroKYkfxGqe7RZdjDUHEjzPDCkJnhhEsx4uoQL2tWd4ugogxbSsxvdkSzxnhTF6UCk8VRhM8auUGwuyZMC");
+        console.log(btc.pathXKeyTo_BIP32_XKey("uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD") ===
+            "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+        console.log(btc.pathXKeyTo_BIP32_XKey("zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk") ===
+            "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+        console.log(btc.pathXKeyTo_BIP32_XKey("vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe") ===
+            "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+
+        console.log(btc.BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP44") ===
+            "xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X");
+        console.log(btc.BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP44") ===
+            "tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2");
+        console.log(btc.BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP49") ===
+            "ypub6TZ8XHFAAptgVqYk8TMc2rqJrqVYYJwYnyinkpsLSJviSfRfztaSx1kihDCsndWJYY6xEqmLaHFraTwDok8knAgrG1ipNwuwtdakQibcvzB");
+        console.log(btc.BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP49") ===
+            "upub57Wa4MvRPNyAivfs3RdRnBNn6jhkarina5xLFiBMvCH4NVqWUPQUpKeh5KZfvYXDyYXStKeUzhrMcQt4p9upL1pW2EFdY8eMJjPA8UKuxaL");
+        console.log(btc.BIP32_XKeyToPathXKey("xpub68isDcaF29MCeYMdJ6ZypmjogsM6bgx3ssCZyRyT4JYqPZcSkEQtKx6ag1FHnirP8tz9VNAn7cuJhBKf63ijyw1FPg2Po36TcuX725Mom1X", "BIP84") ===
+            "zpub6nPPpwv5KWSAM8jrxp9EEwvp2odzUvw3i6F1YDmDpKJbVmEuFYk1a5QriRATnYADxBDkzKMu2wcQTkYnXSYmaQNT8MRExrjSAMePoDv2d2R");
+        console.log(btc.BIP32_XKeyToPathXKey("tpubD6NzVbkrYhZ4YcS4zgyPcMzewmEkQ7CLs47HxSvAQ8AbH5wuJakFpxHwNyXDSmSDzNQmkKx2unk3xTDNN716cAKbgr6CyPm3hsAW4CqPVK2", "BIP84") ===
+            "vpub5SLqN2bLY4WeaDrysnR3zGUHGhrCXUiHVCUZ375FJCewRbejj3a3SPJq6XXFvTB9PBeFdoF3TNCuVhVdXrKq8FW6tZx483TqaTSoWx3U88j");
+
+
+        console.log(btc.BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP44") ===
+            "xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM");
+        console.log(btc.BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP44") ===
+            "tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47");
+
+        console.log(btc.BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP49") ===
+            "yprvAHDx8XGoRrSTB8SmWeQbKbtyU62upUKY89cnSTEVuCaFHcV7FUZzGRAVeenKE4VjGvvbECTQFiMgfuiUykWzWGkPTd6ZXqLDc4odjkNZA2Z");
+        console.log(btc.BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP49") ===
+            "uprv8tXDerPXZ1QsWSbPwQ6RR3S3YhsGBPzwCs2jTKmkMrk5VhWMvr6EGXLDE4oRTjX9pCMzERsgqZkd7bbgwuhCpKhVZEdDF6CUukNY3RLytkD");
+
+        console.log(btc.BIP32_XKeyToPathXKey("xprv9xPgprbtHAtyKqFegHcy7WoUJ7tTsrL3D36Zf4LcXCCNEWfszpQReMWMdSpjE9qosHonUirqo418nd6vG46yi34nbHQ8wvWjLLjzMBFKNqM", "BIP84") ===
+            "zprvAc4DSBwiaXyw2RdtM1CDXgzUe4BMm6K33G91Dr8PHCx8LiJLW8jYtUpdfrjuDy9ega3Pyg3xiNiEZCL3hSw1JWRzKxnz7k9hsnsH8R1Ckwk");
+        console.log(btc.encodeBase58(btc.BIP32_XKeyToPathXKey("tprv8ZgxMBicQKsPf9QH73JoCxLYNjipEn1SHkWWfvsryrNCSbh8gBvfeTg5CrqqTpsEQZFBUxH8NuQ5EJz8EDHC261tgtvnfBNze2Jteoxhi47", "BIP84", {base58: false}), {checkSum: true}) ===
+            "vprv9DMUxX4ShgxMMjnWmkt3d8XYig1i81zS7yYxEifdjs7xYoKbBWFntazMFGm1TeB5DqUnyuUFJE7AztDFfc7DcZP6RaKdq11yBUSBRvwZLXe");
+
+
+        console.log("Wallet class:");
+        w = new btc.Wallet({from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",});
+        console.log(w.masterXPrivateKey === "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+        console.log(w.accountXPrivateKey === "xprv9xy9pW6QriePuzgpsBLoRjSE5ZhzVpdkPNF4377deALRSQ4RJRfBDvfz2XuqHNYSHy175udJTUodKeYWusgqbK4sTuhb1EoB1mcWzKFQR4u");
+        console.log(w.accountXPublicKey === "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk");
+        console.log(w.externalChainXPrivateKey === "xprvA1LwXrHHrvp1QRhKRBkG82YoUKZmsmn887gH7fhgWYSc135bSdDdU7rhe73pkc95S24kL88vTXdQyjyNzAETQWkU2SBXn7zqJQgZgAvosx1");
+        console.log(w.externalChainXPublicKey === "xpub6ELHwMpBhJNJcumnXDHGVAVY2MQGHEVyVLbsv47J4syasqQjzAXt1vBBVN8s1jxTKniP4NypmswJBsGK1PQQ49WvvrDNUtHYN8h9SX24nuV");
+        console.log(w.internalChainXPrivateKey === "xprvA1LwXrHHrvp1Ub1i8zPEd7WPqmnbmd8K2dXihAqmdew6FaMSLMGdStw3UwjFsXYtngpoJoK4CwzV8GEBpCxDQeA54pY2XEy55qHVqWhWpDi");
+        console.log(w.internalChainXPublicKey === "xpub6ELHwMpBhJNJh56BF1vEzFT8Pod6B5rAPrTKVZFPBzU58NgastaszhFXLBchcsuNwTZLrVgcAJGvrHRQBA33B3UcbRqWwYg3AVhVn7MoCzv");
+        console.log(w.path === "m/44'/0'/0'/0");
+        console.log(w.pathType === "BIP44");
+        console.log(w.depth === 0);
+        w = new btc.Wallet({from: "yprvABrGsX5C9jantnJDGKVwXWL5MWpqhaDPDrYX2xYCq6BMZSu2tN8DiZ9TXpU8ssQhYe1WRwZ9RDR8gMxndVp3yCeMRaZ7kSwbD6jPaq7NqCU",});
+        console.log(w.masterXPrivateKey === "yprvABrGsX5C9jantnJDGKVwXWL5MWpqhaDPDrYX2xYCq6BMZSu2tN8DiZ9TXpU8ssQhYe1WRwZ9RDR8gMxndVp3yCeMRaZ7kSwbD6jPaq7NqCU");
+        console.log(w.accountXPrivateKey === "yprvAKNoUVXZ3WtAnEuayKC5MnMSVvLqAjcrWb5n4FB5Mp5QHv2nQrFDNj8nAwx5kgiNPEZVgJmJhCK24axgrvH47oFSMzeB2E1jP9wtYYt4k55");
+        console.log(w.accountXPublicKey === "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6");
+        console.log(w.externalChainXPrivateKey === "yprvAKfNZUdQw7jVb7mt1b6CCE6b4VCwU35yW5DesrvBLJZhejkg1k6fnJhr4vrzcknzooULNWwGxi8eMgB6susaX4RiXfr7SU4tAd3yvy2rmag");
+        console.log(w.externalChainXPublicKey === "ypub6YeixzAJmVHnobrM7cdCZN3KcX3RsVopsJ9FgFKnte6gXY5pZHQvL72KvCjRBxdAzXsQaii7CcPTooRrKeNDMe1fVaD3Z8DGinm58vgNV2z");
+        console.log(w.internalChainXPrivateKey === "yprvAKfNZUdQw7jVdSM6BKgtELaDfCrhRgzHxFvnAfH26LxoE9jYYfybQGruxS2NezefRyEeH2s7oaj3LDarxRuqgQcPE5GHfZD6GgKLfWXaYvp");
+        console.log(w.internalChainXPublicKey === "ypub6YeixzAJmVHnqvRZHMDtbUWxDEhBq9i9KUrNy3gdegVn6x4h6DHqx5BPoisYumVWgsM5f3ByH6bRVaLvJRfFKczg2QnRYBhWDEsQS7X8N73");
+        console.log(w.path === "m/49'/0'/0'/0");
+        console.log(w.pathType === "BIP49");
+        console.log(w.depth === 0);
+
+
+        w = new btc.Wallet({from: "zprvAWgYBBk7JR8Gk5VL6gHZjbRaXUyHeCCt8y4jpMS6D6ZEcYiG92HnLcobZ2Risn4cxH8KBR9hssmgZeaMMCE4mSKxHvFYLMm5Upo2yQjkycx",});
+        console.log(w.masterXPrivateKey === "zprvAWgYBBk7JR8Gk5VL6gHZjbRaXUyHeCCt8y4jpMS6D6ZEcYiG92HnLcobZ2Risn4cxH8KBR9hssmgZeaMMCE4mSKxHvFYLMm5Upo2yQjkycx");
+        console.log(w.accountXPrivateKey === "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM");
+        console.log(w.accountXPublicKey === "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+        console.log(w.externalChainXPrivateKey === "zprvAfRpmUXV8Bx8m14g129H28qNFL9DJ8GTNS2QqhqhgQ25mEo43oYKCHEn3sYFQb4mPfEU5QnwKZZui1z5fDy4h42sb3PDjYeiDfPUGDtCH8n");
+        console.log(w.externalChainXPublicKey === "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+        console.log(w.internalChainXPrivateKey === "zprvAfRpmUXV8Bx8osLms5d2EidSqJuhHMhcZUpao9zjrYE1aayF9BkHMX5DgnYtkHPsnoiEwVYasn1tW9xArUXkwMvB4tEx7A9Df752CLGkPPt");
+        console.log(w.internalChainXPublicKey === "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+        console.log(w.path === "m/84'/0'/0'/0");
+        console.log(w.pathType === "BIP84");
+        console.log(w.depth === 0);
+
+
+        w = new btc.Wallet({
+            from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",
+            path: "m/0'/0'"
+        });
+        console.log(w.masterXPrivateKey === "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+        console.log(w.chainXPrivateKey === "xprv9xQsQ3WwFzzrPLvoafdumL9AV5fF6o74fGXLi3X7ByziXa11EFrYFwjC17BcNozBYY6p6f4ue7Cq2DCDd29dpYAwBecUR3hef63Xsjcsv2t");
+        console.log(w.chainXPublicKey === "xpub6BQDoZ3q6NZ9bq1GghAv8U5u37VjWFpv2VSwWRvikKXhQNL9moAnok3frPogvw8GsN5T2ULjz4YoRPBVWi1EY9fGQpazwtQArRrYEHc8diy");
+        console.log(w.path === "m/0'/0'");
+        console.log(w.pathType === "custom");
+        console.log(w.depth === 0);
+
+        w = new btc.Wallet({
+            from: "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa",
+            path: "m/0"
+        });
+        console.log(w.masterXPrivateKey === "xprv9s21ZrQH143K3V76RxiKKREaBYgPkxDtJk2JFZeKT5oUWM5odhxf6VVKWcWYsxkn8zthgTxaxZ4ao5MDuoQ3AxxkZErhAY86wNfkCGn9MTa");
+        console.log(w.chainXPrivateKey === "xprv9vVvYweCjEDTRTFz9GNEKjcWEEtEPXAgF7tHWLixzJtsKS3T3RoUou7CV3YNfn9BJnr2hkSqHw78pktQszEXPeLEmrxgsLC3e6HfEDpjzUy");
+        console.log(w.chainXPublicKey === "xpub69VGxTB6ZbmkdwLTFHuEgsZEnGiinytXcLotJj8aYeRrCENbay7jMhRgLHpCqjFa2BMRxgcoakR82JbfRAsUk16CmHE4B5NPs3YP1JeiSVj");
+        console.log(w.path === "m/0");
+        console.log(w.pathType === "custom");
+        console.log(w.depth === 0);
+
+        // from non master private key
+        w = new btc.Wallet({from: "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM"});
+        console.log(w.masterXPrivateKey === undefined);
+        console.log(w.accountXPrivateKey === "zprvAdMf8RaFvFUw8khtWvUimWvGQVSkBHMgacfBvD9VmLQpGDLVtp1jv51bV3wmJLg54dqm9FDfMEHjd5TYpGFdLmVof8akvPsXM33GQ7NP2GM");
+        console.log(w.accountXPublicKey === "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+        console.log(w.externalChainXPrivateKey === "zprvAfRpmUXV8Bx8m14g129H28qNFL9DJ8GTNS2QqhqhgQ25mEo43oYKCHEn3sYFQb4mPfEU5QnwKZZui1z5fDy4h42sb3PDjYeiDfPUGDtCH8n");
+        console.log(w.externalChainXPublicKey === "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+        console.log(w.internalChainXPrivateKey === "zprvAfRpmUXV8Bx8osLms5d2EidSqJuhHMhcZUpao9zjrYE1aayF9BkHMX5DgnYtkHPsnoiEwVYasn1tW9xArUXkwMvB4tEx7A9Df752CLGkPPt");
+        console.log(w.internalChainXPublicKey === "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+
+        console.log(w.path === "m/84'/0'/0'/0");
+        console.log(w.pathType === "BIP84");
+        console.log(w.depth === 3);
+
+
+        w = new btc.Wallet({from: "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk"});
+        console.log(w.accountXPublicKey === "xpub6BxWE1dJh6Ch8UmHyCsonsNxdbYUuHMbkbAeqVXFCVsQKCPZqxyRmizTsr6d6WvfJpNSnUQy2yi9d6jZVSR5NzgaXjYqn95J93yQC5PqkZk");
+        console.log(w.externalChainXPublicKey === "xpub6ELHwMpBhJNJcumnXDHGVAVY2MQGHEVyVLbsv47J4syasqQjzAXt1vBBVN8s1jxTKniP4NypmswJBsGK1PQQ49WvvrDNUtHYN8h9SX24nuV");
+        console.log(w.internalChainXPrivateKey === "xpub6ELHwMpBhJNJh56BF1vEzFT8Pod6B5rAPrTKVZFPBzU58NgastaszhFXLBchcsuNwTZLrVgcAJGvrHRQBA33B3UcbRqWwYg3AVhVn7MoCzv");
+        console.log(w.path === "m/44'/0'/0'/0");
+        console.log(w.pathType === "BIP44");
+        console.log(w.depth === 3);
+
+        w = new btc.Wallet({from: "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6"});
+        console.log(w.accountXPublicKey === "ypub6YN9t14SstSTziz45Lj5ivJB3xBKaCLhsp1Nrdagv9cPAiMvxPZTvXTG2D6jnsmGUUK13bDkDVEQu4F2DQpRcd72vHBb2neDf9TRAm9E7K6");
+        console.log(w.externalChainXPublicKey === "ypub6YeixzAJmVHnobrM7cdCZN3KcX3RsVopsJ9FgFKnte6gXY5pZHQvL72KvCjRBxdAzXsQaii7CcPTooRrKeNDMe1fVaD3Z8DGinm58vgNV2z");
+        console.log(w.internalChainXPrivateKey === "ypub6YeixzAJmVHnqvRZHMDtbUWxDEhBq9i9KUrNy3gdegVn6x4h6DHqx5BPoisYumVWgsM5f3ByH6bRVaLvJRfFKczg2QnRYBhWDEsQS7X8N73");
+        console.log(w.path === "m/49'/0'/0'/0");
+        console.log(w.pathType === "BIP49");
+        console.log(w.depth === 3);
+
+        w = new btc.Wallet({from: "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss"});
+        console.log(w.accountXPublicKey === "zpub6rM1Xw79kd3EMEnMcx1j8erzxXHEak5XwqanibZ7Kfwo91feSMKzTsL5LLQFCXTRs6sBpnvis1S7eii3F9y2btCPLXHQMe7h4KoMzLu33Ss");
+        console.log(w.externalChainXPublicKey === "zpub6tRBAz4NxZWRyV9973gHPGn6oMyhhazJjex1e6FKEjZ4e38CbLrZk5ZFu8sEEWShqfmkuiQ8gs2nXBTr2fEGf2iGE12oRvzbreG7kkZL6rW");
+        console.log(w.internalChainXPrivateKey === "zpub6tRBAz4NxZWS2MREy7A2braBPLkBgpRTvhkBbYQMQskzTPJPgj4XuKPhY2ytqVcWVMHj1HJQUKkD1JXiuMvPNKLyEQcRLsxbrV49Lsu2K6f");
+        console.log(w.path === "m/84'/0'/0'/0");
+        console.log(w.pathType === "BIP84");
+        console.log(w.depth === 3);
+
+        w = new btc.Wallet({
+            from: "xpub661MyMwAqRbcFyBZXzFKgZBJjaWtAQwjfxwu3x3w1RLTP9QxBFGueHooMvsC5tyAcZKpMzxNVUHx1PpZayH74UUHfDMTK9sJ5NZMjB8fMeE",
+            path: 'm'
+        });
+
+        console.log(w.chainXPublicKey === "xpub661MyMwAqRbcFyBZXzFKgZBJjaWtAQwjfxwu3x3w1RLTP9QxBFGueHooMvsC5tyAcZKpMzxNVUHx1PpZayH74UUHfDMTK9sJ5NZMjB8fMeE");
+        console.log(w.path === "m");
+        console.log(w.pathType === "custom");
+        console.log(w.depth === 0);
+
+
+        btc.isXPrivateKeyValid("diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select");
+        w = new btc.Wallet({from: "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select"});
+        console.log(w.masterXPrivateKey === "zprvAWgYBBk7JR8Gj6Fyh7avt7VXDTaKuFtEUVYfanib1btw1hR5DNsbmpAJQuH8wXje8oCBAh182uNsu78TSW5DEm7DHXGugYYCzX571phh8sd");
+        console.log(w.accountXPrivateKey === "zprvAds6aiRSB28DPqfPXm381XhejQT74yrcMYFVxKUq3RN6zdfHYhe2kdCfMVN6xizS6TjM2e9usWXBFAfzyof3jEpuw1SBbaN9ZeLTVnifWcN");
+        console.log(w.accountXPublicKey === "zpub6rrSzDxL1PgWcKjrdna8NfePHSHbUSaTimB6khtSbku5sRzS6ExHJRX9CnQ3YZc5mFDpq3cccw3Pt9KpoX2irELqhMEuzRpaLYqnrhqXqtR");
+        console.log(w.externalChainXPrivateKey === "zprvAfHTy9snayGyFCFZpHPuGDVTDhiQSAPU1yPT5Q8W6vnzAFoYP3yXDVCcGRUVw74SUXL9MBh4YEovtjyHymr2jnE9J3EFpqHjJmN9mp7cFWq");
+        console.log(w.externalChainXPublicKey === "zpub6tGpNfQgRLqGTgL2vJvudMSBmjYtqd7KPCK3snY7fGKy348gvbHmmHX67imLvMRewEGMVL45oJdWk47B1ykpZSPAcYCf1Yajphh23MoAoSM");
+        console.log(w.internalChainXPrivateKey === "zprvAfHTy9snayGyHoJXhR8ASoqSyQ2kuJx9yAPKVjdBTT6c47zKktR19sjXkzbumvB6S9Yh6PdYgXCZszypCmtrvjrBTCi7dy488mfdZFMpYQy");
+        console.log(w.internalChainXPublicKey === "zpub6tGpNfQgRLqGWHNzoSfAownBXRsFJmg1LPJvJ82o1ndavvKUJRjFhg41cGEYXjVDqx5MGb122nSDdSykH1GKa4Cm6ADZBg8MiwputCcQgHv");
+        console.log(w.mnemonic === "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select");
+        console.log(w.path === "m/84'/0'/0'/0");
+        console.log(w.pathType === "BIP84");
+        console.log(w.depth === 0);
+
+        w = new btc.Wallet({
+            from: "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+            threshold: 2, shares: 3
+        });
+
+
+        w = new btc.Wallet({
+            from: "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select",
+            threshold: 2, shares: 3, path: "BIP44"
+        });
+        console.log(w.masterXPrivateKey === "xprv9s21ZrQH143K2Vsk2Q1gTwJWsXHS21uEeGWE1zvpFb9AuVnci4YUXgr2NVMxwiRoKWxZfjp17afn8XuL17FBeHk1Yqt4WiuET4wpEcwY7ku");
+        console.log(w.accountXPrivateKey === "xprv9zHPDQ6wBZ4QzGCNzsjKpEMG6PgQZ8C7esLQRLjqZj22rbeaTc1cQ39hj9oRkFT5zs2yJwdTNnnjqTqp2i1gGod4cShNEJrkFf92rtcvm1r");
+        console.log(w.accountXPublicKey === "xpub6DGjcudq1vciCkGr6uGLBNHzeRWtxauy26G1Dj9T84Z1jPyj19KrwqUBaS1cSJTMJwTn7pwiGae2vf5GyjXGaF2VMc1mrX6eavUARaiZoiY");
+        console.log(w.externalChainXPrivateKey === "xprvA1PF3AySergC7tBPGw3y6Q7b5hwBu26Av7TTmfF2xRKg283YiWuAY8a7WYmXja26cjU19nXwFCKGeqVUFnYggQ8TbJ7DSJkZLDA6mYMxH2o");
+        console.log(w.externalChainXPublicKey === "xpub6ENbSgWLVEEVLNFrNxayTY4KdjmgJUp2HLP4a3eeWkretvNhG4DR5vtbMq2UfT1yGDmrkfy2Df4c4tCpGCUj7dGCvAuCea3GsznkzfwVT1p");
+        console.log(w.internalChainXPrivateKey === "xprvA1PF3AySergC9m5gadK9JQdCHMBfpGUEsqdD2rP7vxoqDudvLPDrZsJc2ZeeLHhLQ5A94v2updumYivjRhWXxyyT4Ad8DNMDKkkvyLaDJQj");
+        console.log(w.internalChainXPublicKey === "xpub6ENbSgWLVEEVNFA9ger9fYZvqP2ADjC6F4YoqEnjVJLp6hy4svY77fd5sqJ573XNTQ1LTnQQiRj2MWMdoGm2CW3CANLZyquGASx2dURRKD8");
+        console.log(w.mnemonic === "diary fresh float ostrich clean path tooth battle rebel nerve blood shock vital travel poet profit oval super lens purse army girl protect select");
+        console.log(w.path === "m/44'/0'/0'/0");
+        console.log(w.pathType === "BIP44");
+        console.log(w.depth === 0);
+
+
+        console.log("Success")
+
+    }
+
+
+</script>
+
+</body>
+</html>

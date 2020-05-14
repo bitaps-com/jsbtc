@@ -41,15 +41,20 @@ module.exports = function (S) {
         let oLP = malloc(4);
         let oP = malloc(Math.ceil(m.length * 733 / 1000) + 2);
         CM.HEAPU8.set(mB, bP);
-        CM._DecodeBase58(bP, oP, oLP);
-        let oL = CM.getValue(oLP, 'i32');
-        let out = new BA(oL);
-        for (let q = 0; q <= oL; q++) out[q] = getValue(oP + q, 'i8');
+        let r = CM._DecodeBase58(bP, oP, oLP);
         free(bP);
-        free(oLP);
+        if (r) {
+            let oL = CM.getValue(oLP, 'i32');
+            free(oLP);
+            let out = new BA(oL);
+            for (let q = 0; q <= oL; q++) out[q] = getValue(oP + q, 'i8');
+            free(oP);
+            if (A.checkSum) out = out.slice(0, -4);
+            return (A.hex) ? out.hex() : out;
+        }
         free(oP);
-        if (A.checkSum) out = out.slice(0, -4);
-        return (A.hex) ? out.hex() : out;
+        free(oLP);
+        return "";
     };
 
     S.rebaseBits = (data, fromBits, toBits, pad) => {

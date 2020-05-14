@@ -76,7 +76,8 @@ module.exports = function (S) {
         let k = xPrivateKey.slice(45);
         let depth = xPrivateKey[4] + 1;
         if (depth > 255) throw new Error("path depth should be <= 255");
-        let pub = S.privateToPublicKey(k.slice(1), {hex: false});
+        let r = BF(k.slice(1));
+        let pub = S.privateToPublicKey(r, {hex: false});
         let fingerprint = S.hash160(pub).slice(0, 4);
         let s = S.hmacSha512(c, BC([(i >= S.HARDENED_KEY) ? k : pub, BF(S.intToBytes(i,4,"big"))]));
         let pi = new BN(s.slice(0, 32));
