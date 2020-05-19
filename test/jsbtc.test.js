@@ -168,7 +168,6 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 let m = entropyToMnemonic(e);
                 equal(mnemonicToEntropy(m), e);
             }
-
         }).timeout(10000);
 
         it('isMnemonicCheckSumValid', () => {
@@ -214,15 +213,71 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 let t =  Math.floor(Math.random() * (10  )) + 2;
                 let i =  Math.floor(Math.random() * (t - 2 )) + 2;
                 let m = entropyToMnemonic(generateEntropy());
-                let shares = splitMnemonic(i, t, m);
+                let shares = splitMnemonic(i, t, m, {sharesVerify: true});
                 let s = {};
                 let q = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
                 if (q<i) q = i;
+                let keys = [];
+                for (let k in shares)
+                    keys.push(k);
                 do {
-                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                    let i = keys[Math.floor(Math.random() * (keys.length))];
 
                     s[i] = shares[i];
                 } while (Object.keys(s).length < i);
+                let m2 = combineMnemonic(s);
+                equal(m, m2);
+            }
+        }).timeout(10000);
+
+        it('split mnemonic with embedded indexes', () => {
+            let m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
+                   'point skate life truly hockey scout assault lab impulse boss';
+            let s = "a870edd6272a4f0962a7595612d96645f683a3378fd9b067340eb11ebef45cb3d28fb64678cadc43969846" +
+               "0a3d48bd57b2ae562b6d2b3c9fb5462d21e474191c";
+            let t = 5;
+            let i = 3;
+            let shares = splitMnemonic(i, t, m, {embeddedIndex: true});
+            equal(combineMnemonic(shares), m);
+
+        });
+        it('split mnemonic with embedded indexes extensive test', () => {
+
+            let m = entropyToMnemonic(generateEntropy());
+            let s = splitMnemonic(3, 255, m, {embeddedIndex: true});
+            equal(m, combineMnemonic(s));
+            s = splitMnemonic(255, 255, m, {embeddedIndex: true});
+            equal(m, combineMnemonic(s));
+            s = splitMnemonic(2, 255, m, {embeddedIndex: true});
+            equal(m, combineMnemonic(s));
+
+            s = splitMnemonic(1, 255, m, {embeddedIndex: true});
+            equal(m, combineMnemonic(s));
+
+            m = "stage amused wasp estate tomorrow outer satoshi version verb pudding ghost slender";
+            s = splitMnemonic(3, 8, m, {embeddedIndex: true});
+
+            equal(m, combineMnemonic(s));
+
+            for (let q = 0; q < 10; q++) {
+                let t =  Math.floor(Math.random() * (10  )) + 2;
+                let i =  Math.floor(Math.random() * (t - 2 )) + 2;
+                let m = entropyToMnemonic(generateEntropy());
+                // i of t shares
+                let shares = splitMnemonic(i, t, m, {embeddedIndex: true, sharesVerify:true});
+                let s = [];
+                let keys = [];
+
+                do {
+                    let q = Math.floor(Math.random() * (shares.length));
+
+                    if (!keys.includes(q)) {
+                    s.push(shares[q]);
+                    keys.push(q);
+                    }
+
+                } while (s.length < i);
+
                 let m2 = combineMnemonic(s);
                 equal(m, m2);
             }
@@ -483,8 +538,10 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 let t =  Math.floor(Math.random() * (30 - i )) + i;
                 let shares = __split_secret(i, t, secret);
                 let s = {};
+                let keys = []
+                for (let k in shares) keys.push(k);
                 do {
-                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                    let i = keys[Math.floor(Math.random() * (Object.keys(shares).length))];
                     s[i] = shares[i];
                 } while (Object.keys(s).length < i);
                 let r = __restore_secret(s);
@@ -496,10 +553,10 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 let t =  Math.floor(Math.random() * (30 - i )) + i;
                 let shares = __split_secret(i, t, secret);
                 let s = {};
-                let q = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
-                if (q<i) q = i;
+                let keys = [];
+                for (let k in shares) keys.push(k);
                 do {
-                    let i = Math.floor(Math.random() * (Object.keys(shares).length) + 1);
+                    let i = keys[Math.floor(Math.random() * (Object.keys(shares).length) )];
 
                     s[i] = shares[i];
                 } while (Object.keys(s).length < i);

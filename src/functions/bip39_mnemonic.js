@@ -199,7 +199,7 @@ module.exports = function (S) {
         };
 
     S.entropyToMnemonic =  (e, A = {}) => {
-        ARGS(A, {wordList: S.BIP39_WORDLIST});
+        ARGS(A, {wordList: S.BIP39_WORDLIST, data: false});
         e = S.getBuffer(e);
         let i = new BN(e, 16);
         if (!([16, 20, 24, 28, 32].includes(e.length)))
@@ -208,7 +208,12 @@ module.exports = function (S) {
             throw new TypeError('invalid wordlist');
 
         let b = Math.ceil(e.length * 8 / 32);
-        i = i.shln(b).or(new BN(S.sha256(e)[0] >> (8-b)));
+
+        if (A.data !== false) {
+            if (A.data > (2 ** b - 1)) throw new TypeError('embedded data bits too long');
+            i = i.shln(b).or(new BN(A.data));
+
+        } else i = i.shln(b).or(new BN(S.sha256(e)[0] >> (8-b)));
         let r = [];
         for (let d = (e.length * 8 + 8) / 11 | 0; d > 0; d--)
             r.push(A.wordList[i.shrn((d - 1) * 11).and(new BN(2047)).toNumber()]);
@@ -260,6 +265,14 @@ module.exports = function (S) {
         return c === c2;
     };
 
+    S.getMnemonicCheckSumData =  (m, A = {}) => {
+        ARGS(A, {wordList: S.BIP39_WORDLIST});
+        m = m.trim().split(/\s+/);
+        let bitSize = m.length * 11;
+        let checkSumBitLen = bitSize % 32;
+        return S.intToBytes(A.wordList.indexOf(m.pop()), 1) & (2 ** checkSumBitLen - 1);
+    };
+
     S.__combinations = (a, n) => {
         let results = [], result, mask, i;
         let total = Math.pow(2, a.length);
@@ -279,37 +292,77 @@ module.exports = function (S) {
     };
 
     S.splitMnemonic = (threshold, total, m,  A = {}) => {
-        ARGS(A, {wordList: S.BIP39_WORDLIST, checkSum: false, hex: true});
+        ARGS(A, {wordList: S.BIP39_WORDLIST,
+                 checkSumVerify: false,
+                 sharesVerify: false,
+                 embeddedIndex: false,
+                 hex: true});
         let e =  S.mnemonicToEntropy(m, {wordList: A.wordList,
-            checkSum: A.checkSum, hex: false});
-        let shares = S.__split_secret(threshold, total, e);
+            checkSum: A.checkSumVerify, hex: false});
+        let bits;
+        if (A.embeddedIndex)
+            bits = Math.ceil(Math.log2(total))+1;
+        else
+            bits = 8;
 
-        // shares validation
-        let a = [];
-        for (let i in shares) {
-            i = parseInt(i);
-            a.push([i, shares[i]])
-        }
-        let combinations = S.__combinations(a, threshold);
-        for (let c of combinations) {
-            let d = {};
-            for (let q of c) d[q[0]] = q[1];
-            let s = S.__restore_secret(d);
-            if (!s.equals(e))  {
-                throw new Error("split secret failed");
+        let shares = S.__split_secret(threshold, total, e, bits);
+
+
+        if (A.sharesVerify) {
+            // shares validation
+            let a = [];
+            for (let i in shares) {
+                i = parseInt(i);
+                a.push([i, shares[i]])
+            }
+            let combinations = S.__combinations(a, threshold);
+            for (let c of combinations) {
+                let d = {};
+                for (let q of c) d[q[0]] = q[1];
+                let s = S.__restore_secret(d);
+                if (!s.equals(e))  {
+                    throw new Error("split secret failed");
+                }
             }
         }
 
-        let result = {};
-        for (let i in shares) result[i] = S.entropyToMnemonic(shares[i], A);
+
+        let result;
+
+        if (A.embeddedIndex === false) {
+            result = {};
+            for (let i in shares) result[i] = S.entropyToMnemonic(shares[i], A);
+        } else {
+            result = [];
+            for (let i in shares) {
+                A.data = i;
+                result.push(S.entropyToMnemonic(shares[i], A));
+            }
+        }
+
         return result;
     };
 
     S.combineMnemonic = (shares, A = {}) =>  {
+        let embeddedIndex = shares.constructor === Array;
         let s = {};
-        for (let i in shares) s[i] = S.mnemonicToEntropy(shares[i],
-            {wordList: A.wordList,
-                checkSum: A.checkSum, hex: false});
+        if (embeddedIndex) {
+            for (let share of shares) {
+                let e = S.mnemonicToEntropy(share, {
+                    wordList: A.wordList,
+                    checkSum: false,
+                    hex: false
+                });
+                let i = S.getMnemonicCheckSumData(share);
+                if (s[i] !== undefined) throw new Error("Non unique or invalid shares");
+                s[i] = e;
+            }
+        } else {
+            for (let i in shares) s[i] = S.mnemonicToEntropy(shares[i],
+                {wordList: A.wordList,
+                    checkSum: A.checkSum, hex: false});
+        }
+
         return S.entropyToMnemonic(S.__restore_secret(s), A);
     }
 

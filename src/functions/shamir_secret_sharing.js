@@ -59,7 +59,7 @@ module.exports = function (S) {
         return r;
     };
 
-    S.__shamirInterpolation = (points, x=0) => {
+    S.__shamirInterpolation = (points) => {
         let k = points.length;
         if (k<2) throw new Error("Minimum 2 points required");
         points.sort((a,b) => a[0] - b[0]);
@@ -85,18 +85,46 @@ module.exports = function (S) {
     };
 
 
-    S.__split_secret = (threshold, total,  secret) => {
+    S.__split_secret = (threshold, total,  secret, indexBits=8) => {
         if (threshold > 255) throw new Error("threshold limit 255");
         if (total > 255) throw new Error("total limit 255");
+        let index_mask = 2**indexBits - 1;
+        if (total > index_mask) throw new Error("index bits is to low");
         if (threshold > total) throw new Error("invalid threshold");
         let shares = {};
-        for (let i = 0; i < total; i++) shares[i+1] = BF([]);
+        let sharesIndexes = [];
 
         let e = S.generateEntropy({hex:false});
         let ePointer = 0;
+        let i = 0;
+        let index;
+
+        // generate random indexes (x coordinate)
+        do {
+           if (ePointer >= e.length) {
+               // get more 32 bytes entropy
+               e = S.generateEntropy({hex:false});
+               ePointer = 0;
+           }
+
+           index = e[ePointer] & index_mask;
+           if ((shares[index] === undefined)&&(index !== 0)) {
+               i++;
+               shares[index] = BF([]);
+               sharesIndexes.push(index)
+           }
+
+           ePointer++;
+        } while (i !== total);
+
+
+        e = S.generateEntropy({hex:false});
+        ePointer = 0;
+
         let w;
         for (let b = 0; b < secret.length; b++) {
             let q = [secret[b]];
+
             for (let i = 0; i < threshold - 1; i++) {
                 do {
                     if (ePointer >= e.length) {
@@ -104,12 +132,13 @@ module.exports = function (S) {
                         e = S.generateEntropy({hex:false});
                     }
                     w  = e[ePointer++];
-                } while (q.includes(w))
+                } while (q.includes(w));
                 q.push(w);
             }
-            for (let x = 0; x < total; x++) {
-                shares[x + 1] = BC([shares[x + 1], BF([S.__shamirFn(x + 1, q)])]);
-            }
+
+            for (let i of sharesIndexes)
+                shares[i] = BC([shares[i], BF([S.__shamirFn(i, q)])]);
+
         }
         return shares;
     };
@@ -117,6 +146,8 @@ module.exports = function (S) {
     S.__restore_secret = (shares) => {
       let secret = BF([]);
       let shareLength = null;
+      let q = [];
+
       for (let i in shares) {
           i = parseInt(i);
           if ((i < 1) || (i > 255)) throw new Error("Invalid share index " + i);

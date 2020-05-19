@@ -185,8 +185,13 @@ module.exports = function (S) {
                 this.sharesTotal = A.shares;
                 if (this.sharesThreshold > this.sharesTotal) throw new Error("Threshold invalid");
                 if (this.sharesTotal > 1) {
+                    let m = this.mnemonic.trim().split(/\s+/);
+                    let bitSize = m.length * 11;
+                    let checkSumBitLen = bitSize % 32;
+                    if ( this.sharesTotal > (2 ** checkSumBitLen - 1) )
+                        throw new Error(`Maximum ${2 ** checkSumBitLen - 1} shares allowed for ${m.length} mnemonic words`);
                     this.mnemonicShares = S.splitMnemonic(A.threshold, A.shares, this.mnemonic,
-                        {wordList: A.BIP39_WORDLIST});
+                        {wordList: A.BIP39_WORDLIST, embeddedIndex: true});
 
                 }
             }
