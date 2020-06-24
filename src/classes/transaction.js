@@ -658,8 +658,15 @@ module.exports = function (S) {
             }
             A.privateKey = pk;
         } else {
-            A.privateKey = (A.privateKey.key === undefined) ? new S.PrivateKey(A.privateKey).key: A.privateKey.key;
-            A.publicKey = [S.privateToPublicKey(A.privateKey, {hex: false, compressed: A.privateKey.compressed})];
+            if (A.privateKey.key === undefined) {
+                let k = new S.PrivateKey(A.privateKey);
+                A.privateKey = k.key;
+                A.privateKeyCompressed = k.compressed;
+            } else {
+                A.privateKeyCompressed = A.privateKey.compressed;
+                A.privateKey = A.privateKey.key;
+            }
+            A.publicKey = [S.privateToPublicKey(A.privateKey, {hex: false, compressed: A.privateKeyCompressed})];
             A.privateKey = [A.privateKey];
         }
 

@@ -2116,6 +2116,14 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
                 sigHashType: SIGHASH_ALL});
             equal(tx.serialize(), t);
 
+            t = new Transaction();
+            t.addInput({txId:"42361048a18b9e619f3dfe16f8f5032f0912cbc8f535c233731e83064c81bfe3",
+                address:"1Bitapsw1aT8hkLXFtXwZQfHgNwNJEyJJ1"});
+            t.addOutput({value: 100000000, address: "1Bitapsw1aT8hkLXFtXwZQfHgNwNJEyJJ1"});
+            t.signInput(0, {privateKey:"5JEBR43smtENF37sib2fUM2skB5PKFBGbqoQaKyTr8vvqW28HxP"});
+            equal(t.vIn[0].scriptSigOpcodes === "[72] [33]", false);
+            // console.log(t.vIn[0])
+
             t = "010000000278be2e22c8880c01fe9d9d8e4a2f42f0f89d6b6d3f0f2dee79fd4b3be4ff9307000000006b483045022" +
                  "100a45cab68bff1ef79b463ebffa3a3c546cd467e6aabb051c87c0116c968a5e2e602202b21d93705f768533b5a3e" +
                  "0e17871ae4d8a61dfde213096cdf5e38abbf8ba0e7032103b5963945667335cda443ba88b6257a15d033a20b60eb2" +
