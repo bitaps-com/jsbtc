@@ -395,7 +395,7 @@ module.exports = function (S) {
         this.vOut[k] = {};
         this.vOut[k].value = A.value;
 
-        let s = S.parseScript(A.scriptPubKey, {segwit: this.segwit === true})
+        let s = S.parseScript(A.scriptPubKey, {segwit: true});
         this.vOut[k].nType = s.nType;
         this.vOut[k].type = s.type;
 
