@@ -132,17 +132,23 @@ module.exports = function (S) {
                 this.publicKey = k;
             } else {
                 if (!Buffer.isBuffer(k)) k = BF(k);
+            }
 
+            if (Buffer.isBuffer(k)) {
                 if (k.length === 32) {
                     if (A.compressed === null) A.compressed = true;
                     this.privateKey = new PrivateKey(k, A);
                     this.publicKey = new PublicKey(this.privateKey, A);
                 } else if (S.isPublicKeyValid(k)) {
-                    this.publicKey = new PublicKey(key, A);
+
+                    this.publicKey = new PublicKey(k, A);
+
                     A.compressed = this.publicKey.compressed;
                 } else throw new Error('private/public key invalid');
-                this.testnet = A.testnet;
             }
+
+            this.testnet = A.testnet;
+
 
             if (A.addressType === null) {
                 if (A.compressed === false) A.addressType = "P2PKH";
