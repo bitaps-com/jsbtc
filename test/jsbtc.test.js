@@ -1143,6 +1143,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(new PublicKey(ucpk).key.hex(), ucpk);
             equal(new PublicKey(cpk).key.hex(), cpk);
             equal(new PublicKey(ucpk, {compressed: true}).key.hex(), ucpk);
+
         });
 
         it('Address', () => {
@@ -1168,6 +1169,8 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
 
             let redeem = "5221032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6921032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6921032bfc25cf7cccc278b26473e2967b8fd403b4b544b836e71abdfebb08d8c96d6953ae"
             equal(new ScriptAddress(redeem, {witnessVersion: null}).address, '3KCqqS6eznp3ucVPxtNkiYcVg6kQKNX9sg');
+            let k = new Address("02a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb4")
+            equal(k.address, 'bc1qxsms4rt5axt9674du2az7vq3pvephu3k5jyky8');
         });
 
 
