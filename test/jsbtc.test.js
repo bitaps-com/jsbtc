@@ -1117,7 +1117,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
 
             equal(new PrivateKey(h, {'compressed': false, testnet: false}).wif,
                 '5Jkc7xqsrqA5pGQdwDHSQXRV3pUBLTXVjBjqJUSVz3pUmyuAFwP');
-
+            equal(new PrivateKey('5Jkc7xqsrqA5pGQdwDHSQXRV3pUBLTXVjBjqJUSVz3pUmyuAFwP').compressed, false);
             equal(new PrivateKey(h, {'compressed': true, testnet: true}).wif,
                 'cRiTUeUav1FMR4UbQh2gW9n8RfpNHLBHsEYXJYa4Rv6ZrCdTPGqv');
 
@@ -1150,6 +1150,8 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             let pub = new PublicKey(p);
             equal(new Address(p, {addressType: "P2PKH"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
             equal(new Address(p, {addressType: "PUBKEY"}).address, '17suVjHXyWF9KiGkpRRQW4ysiEqdDkRqo1');
+            equal(new Address("5JGpXumZnRq16qJ1RcjGbiippFScmAc1fw3nGqqKgTvBrMQk7XF").address,
+                  '1bVp115hvcWCKf3JRMhcWFRrxZFZJ2VQA');
 
             // from public key
             p = new PublicKey('02a8fb85e98c99b79150df12fde488639d8445c57babef83d53c66c1e5c818eeb4');
@@ -2122,7 +2124,6 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             t.addOutput({value: 100000000, address: "1Bitapsw1aT8hkLXFtXwZQfHgNwNJEyJJ1"});
             t.signInput(0, {privateKey:"5JEBR43smtENF37sib2fUM2skB5PKFBGbqoQaKyTr8vvqW28HxP"});
             equal(t.vIn[0].scriptSigOpcodes === "[72] [33]", false);
-            // console.log(t.vIn[0])
 
             t = "010000000278be2e22c8880c01fe9d9d8e4a2f42f0f89d6b6d3f0f2dee79fd4b3be4ff9307000000006b483045022" +
                  "100a45cab68bff1ef79b463ebffa3a3c546cd467e6aabb051c87c0116c968a5e2e602202b21d93705f768533b5a3e" +

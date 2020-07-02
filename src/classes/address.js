@@ -8,8 +8,9 @@ module.exports = function (S) {
 
     class PrivateKey {
         constructor(k, A = {}) {
-            defArgs(A, {compressed: true, testnet: false});
+            defArgs(A, {compressed: null, testnet: false});
             if (k === undefined) {
+                if (A.compressed === null) A.compressed = true;
                 this.compressed = A.compressed;
                 this.testnet = A.testnet;
                 this.key = S.createPrivateKey({wif: false});
@@ -18,6 +19,7 @@ module.exports = function (S) {
             } else {
                 if (S.isString(k)) {
                     if (S.isHex(k)) {
+                        if (A.compressed === null) A.compressed = true;
                         this.key = BF(k, 'hex');
                         this.compressed = A.compressed;
                         this.testnet = A.testnet;
@@ -36,6 +38,7 @@ module.exports = function (S) {
                 } else {
                     k = BF(k);
                     if (k.length !== 32) throw new Error('private key invalid');
+                    if (A.compressed === null) A.compressed = true;
                     this.compressed = A.compressed;
                     this.testnet = A.testnet;
                     this.key = k;
@@ -53,16 +56,20 @@ module.exports = function (S) {
 
     class PublicKey {
         constructor(k, A = {}) {
-            defArgs(A, {compressed: true, testnet: false});
+            defArgs(A, {compressed: null, testnet: false});
             this.compressed = A.compressed;
             this.testnet = A.testnet;
             if (k instanceof PrivateKey) {
                 A.testnet = k.testnet;
+                A.compressed = k.compressed;
                 k = k.wif;
             }
 
             if (S.isString(k)) {
-                if (S.isHex(k)) k = BF(k, 'hex');
+                if (S.isHex(k)) {
+                    k = BF(k, 'hex');
+                    if (A.compressed === null) A.compressed = true;
+                }
                 else if (S.isWifValid(k)) {
                     this.compressed = ![S.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX,
                         S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX].includes(k[0]);
@@ -72,6 +79,7 @@ module.exports = function (S) {
                 } else throw new Error('private/public key invalid');
             } else k = BF(k);
             if (k.length === 32) {
+                if (A.compressed === null) A.compressed = true;
                 this.key = S.privateToPublicKey(k, {compressed: A.compressed, testnet: A.testnet, hex: false});
                 this.compressed = A.compressed;
                 this.testnet = A.testnet;
@@ -92,18 +100,23 @@ module.exports = function (S) {
 
     class Address {
         constructor(k, A = {}) {
-            defArgs(A, {addressType: "P2WPKH", testnet: false, compressed: true});
+            defArgs(A, {addressType: null, testnet: false, compressed: null});
 
             if (k === undefined) {
+                if (A.compressed === null) A.compressed = true;
                 this.privateKey = new PrivateKey(undefined, A);
                 this.publicKey = new PublicKey(this.privateKey, A);
             } else if (S.isString(k)) {
                 if (S.isWifValid(k)) {
                     this.privateKey = new PrivateKey(k, A);
+                    A.compressed = this.privateKey.compressed;
                     this.publicKey = new PublicKey(this.privateKey, A);
                     A.testnet = this.privateKey.testnet;
                 }
-                else if (S.isHex(k)) k = BF(k, 'hex');
+                else if (S.isHex(k)) {
+                    if (A.compressed === null) A.compressed = true;
+                    k = BF(k, 'hex');
+                }
                 else {
                     throw new Error('private/public key invalid');
                 }
@@ -121,17 +134,26 @@ module.exports = function (S) {
                 if (!Buffer.isBuffer(k)) k = BF(k);
 
                 if (k.length === 32) {
+                    if (A.compressed === null) A.compressed = true;
                     this.privateKey = new PrivateKey(k, A);
                     this.publicKey = new PublicKey(this.privateKey, A);
                 } else if (S.isPublicKeyValid(k)) {
                     this.publicKey = new PublicKey(key, A);
+                    A.compressed = this.publicKey.compressed;
                 } else throw new Error('private/public key invalid');
                 this.testnet = A.testnet;
             }
 
+            if (A.addressType === null) {
+                if (A.compressed === false) A.addressType = "P2PKH";
+                else A.addressType = "P2WPKH";
+            }
+
+
             if (!["P2PKH", "PUBKEY", "P2WPKH", "P2SH_P2WPKH"].includes(A.addressType)) {
                 throw new Error('address type invalid');
             }
+
 
             this.type = A.addressType;
             if (this.type === 'PUBKEY') {
