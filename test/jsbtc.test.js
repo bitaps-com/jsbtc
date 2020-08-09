@@ -1107,6 +1107,24 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             e = d;
             equal(deleteFromScript(s,d).hex(), e.hex());
         });
+
+        it('bitcoinMessage', () => {
+            let s = "ee5e7a356fdfff83d3635fe977e826d2d7964a9af94e772921e5521c06c9577c";
+            equal(bitcoinMessage('test message www').hex(), s);
+            s = signBitcoinMessage('test message www', "KyTZwSK5ypXcozECtm69BXHg1PnKTyCxa8qv5uvzmwdp1eVGe4Ed");
+            let sig = "H5Sj3kHPdoYQywVcs7JarMP9GaIkRebE6Ioj56l5F4vESaiBUERbXzh3Bgj7fqkGALdZf1onFhNpXpbXv6KjvOM=";
+            equal(s, sig);
+            let w = bitcoinSignedMessageAddresses('test message www', sig);
+            equal(w[0], "bc1qnr76ecc0lwadc3czch9wpdj26xc7gkzl53n0jd");
+            equal(w[1], "1Ewwbq8XmfL4skiB7ERG8yX1Xc8auodZx1");
+            equal(w[2], "35HqEmYKSPoJWcVSDH1szCccXWtBJ7kcBm");
+            s = "H5Sj3kHPdoYQywVcs7JarMP9GaIkRebE6Ioj56l5F4vESaiBUERbXzh3Bgj7fqkGALdZf1onFhNpXpbXv6KjvOM=";
+            equal(verifyBitcoinMessage('test message www', s, "bc1qnr76ecc0lwadc3czch9wpdj26xc7gkzl53n0jd"), true);
+            equal(verifyBitcoinMessage('test message www', s, "1Ewwbq8XmfL4skiB7ERG8yX1Xc8auodZx1"), true);
+            equal(verifyBitcoinMessage('test message www', s, "35HqEmYKSPoJWcVSDH1szCccXWtBJ7kcBm"), true);
+            equal(verifyBitcoinMessage('test message www2', s, "bc1qnr76ecc0lwadc3czch9wpdj26xc7gkzl53n0jd"), false);
+
+        });
     });
 
     describe("Address classes:", function () {
