@@ -1123,6 +1123,8 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(verifyBitcoinMessage('test message www', s, "1Ewwbq8XmfL4skiB7ERG8yX1Xc8auodZx1"), true);
             equal(verifyBitcoinMessage('test message www', s, "35HqEmYKSPoJWcVSDH1szCccXWtBJ7kcBm"), true);
             equal(verifyBitcoinMessage('test message www2', s, "bc1qnr76ecc0lwadc3czch9wpdj26xc7gkzl53n0jd"), false);
+            s = signBitcoinMessage('test message www', "5JGpXumZnRq16qJ1RcjGbiippFScmAc1fw3nGqqKgTvBrMQk7XF");
+            equal(verifyBitcoinMessage('test message www', s, "1bVp115hvcWCKf3JRMhcWFRrxZFZJ2VQA"), true);
 
         });
     });

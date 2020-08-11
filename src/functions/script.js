@@ -490,9 +490,10 @@ module.exports = function (S) {
         if (S.isString(privateKey)) {
             if (S.isHex(privateKey)) privateKey = BF(privateKey, 'hex');
             else if (S.isWifValid(privateKey)) {
-                privateKey = S.wifToPrivateKey(privateKey, {hex: false});
                 if ((privateKey[0] === S.MAINNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX) ||
                     (privateKey[0] === S.TESTNET_PRIVATE_KEY_UNCOMPRESSED_PREFIX)) compressed = 0;
+                privateKey = S.wifToPrivateKey(privateKey, {hex: false});
+
             }
             else throw new Error("private key invalid");
         }
@@ -542,9 +543,11 @@ module.exports = function (S) {
         m = S.bitcoinMessage(m);
         let pub = S.publicKeyRecovery(s.slice(1), m, recId, {compressed: compressed, hex: true, der: false});
         if (pub !== null) {
+            if (compressed)
             return [S.publicKeyToAddress(pub, {testnet: A.testnet, p2sh_p2wpkh: false, witnessVersion: 0}),
                 S.publicKeyToAddress(pub, {testnet: A.testnet, p2sh_p2wpkh: false, witnessVersion: null}),
                 S.publicKeyToAddress(pub, {testnet: A.testnet, p2sh_p2wpkh: true, witnessVersion: 0})];
+            else return [S.publicKeyToAddress(pub, {testnet: A.testnet, p2sh_p2wpkh: false, witnessVersion: null})]
         }
         return [];
     };
