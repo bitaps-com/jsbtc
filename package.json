@@ -64,7 +64,7 @@
     "install": "0.13.0",
     "istanbul": "0.4.5",
     "mocha": "6.2.2",
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "npm-force-resolutions": "0.0.3",
     "nyc": "15.0.0",
     "rimraf": "3.0.1",
