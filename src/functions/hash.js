@@ -71,6 +71,20 @@ module.exports = function (S) {
         return (A.hex) ? out.hex() : out;
     };
 
+    S.md5 = (m, A = {}) => {
+        ARGS(A, {encoding: 'hex|utf8', hex: false});
+        m = getBuffer(m, A.encoding);
+        let bP = malloc(m.length);
+        let oP = malloc(16);
+        CM.HEAPU8.set(m, bP);
+        CM._md5sum(bP, m.length, oP);
+        let out = new BA(16);
+        for (let i = 0; i < 16; i++) out[i] = getValue(oP + i, 'i8');
+        free(bP);
+        free(oP);
+        return (A.hex) ? out.hex() : out;
+    };
+
     S.hash160 = (m, A = {}) => {
         ARGS(A, {encoding: 'hex|utf8', hex: false});
         return S.ripemd160(S.sha256(m, {hex: false, encoding: A.encoding}), {hex: A.hex});
