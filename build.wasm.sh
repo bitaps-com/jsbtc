@@ -25,6 +25,7 @@ cd /jsbtc/c-crypto
      /jsbtc/c-crypto/pbkdf2.c \
      /jsbtc/c-crypto/memzero.c \
      /jsbtc/c-crypto/sha512.c \
+     /jsbtc/c-crypto/md5.c \
 )
 
 ls
@@ -58,7 +59,7 @@ emmake make
     -s ALLOW_MEMORY_GROWTH=0 \
     -s INVOKE_RUN=1 \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-    -s EXPORTED_FUNCTIONS="['_malloc', '_free','_secp256k1_ec_pubkey_create', '_secp256k1_context_randomize', '_secp256k1_context_create', '_secp256k1_ecdsa_recover', '_secp256k1_ecdsa_signature_parse_der', '_secp256k1_ec_pubkey_parse', '_secp256k1_ec_pubkey_serialize', '_secp256k1_ecdsa_verify', '_secp256k1_ecdsa_sign_recoverable', '_secp256k1_ecdsa_signature_serialize_der', '_secp256k1_ecdsa_signature_serialize_compact', '_secp256k1_ecdsa_recoverable_signature_parse_compact', '_secp256k1_ecdsa_recoverable_signature_serialize_compact', '_hmac_sha512_oneline', '_pbkdf2_hmac_sha512', '_secp256k1_ec_pubkey_tweak_add' ]" \
+    -s EXPORTED_FUNCTIONS="['_malloc', '_free','_secp256k1_ec_pubkey_create', '_secp256k1_context_randomize', '_secp256k1_context_create', '_secp256k1_ecdsa_recover', '_secp256k1_ecdsa_signature_parse_der', '_secp256k1_ec_pubkey_parse', '_secp256k1_ec_pubkey_serialize', '_secp256k1_ecdsa_verify', '_secp256k1_ecdsa_sign_recoverable', '_secp256k1_ecdsa_signature_serialize_der', '_secp256k1_ecdsa_signature_serialize_compact', '_secp256k1_ecdsa_recoverable_signature_parse_compact', '_secp256k1_ecdsa_recoverable_signature_serialize_compact', '_hmac_sha512_oneline', '_pbkdf2_hmac_sha512', '_secp256k1_ec_pubkey_tweak_add', '_md5sum' ]" \
     -s EXPORTED_RUNTIME_METHODS='["getValue"]' \
     -s SINGLE_FILE=1 \
      -o /jsbtc/src/btc_crypto.js \

@@ -66,6 +66,11 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(Buffer.from("46a80bd289028559818a222eea64552d7a6a966f", 'hex').equals(ripemd160("146573742068617368313630")),
                 false);
         });
+        it('md5', () => {
+            equal(md5("test hash md5", {hex: true}),
+                "6715e18f329d8efc81c42a5ae0d48b7c");
+
+        });
         it('hash160', () => {
             equal(hash160("test hash160", {hex: true}), "b720061a734285a70e86cb32b31f32884e198c32");
             equal(hash160("746573742068617368313630", {hex: true}), "b720061a734285a70e86cb32b31f32884e198c32");
