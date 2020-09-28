@@ -22,6 +22,36 @@ module.exports = function (S) {
         return (A.hex) ? out.hex() : out;
     };
 
+    S.SHA256 = class {
+        constructor () {
+            this.ptr = new  CM.CSHA256();
+            this.result = new BA(32);
+            return this;
+        };
+        update(m, A = {}) {
+            ARGS(A, {encoding: 'hex|utf8'});
+            m = getBuffer(m, A.encoding);
+            let bP = malloc(m.length);
+            CM.HEAPU8.set(m, bP);
+            this.ptr.Write(bP, m.length);
+            return this;
+        };
+        digest() {
+            let oP = malloc(32);
+            this.ptr.Finalize(oP);
+            for (let i = 0; i < 32; i++) this.result[i] = getValue(oP + i, 'i8');
+            free(oP);
+            return this.result;
+        };
+        hexdigest() {
+            let oP = malloc(32);
+            this.ptr.Finalize(oP);
+            for (let i = 0; i < 32; i++) this.result[i] = getValue(oP + i, 'i8');
+            free(oP);
+            return this.result.hex();
+        }
+    };
+
     S.doubleSha256 = (m, A = {}) => {
         ARGS(A, {encoding: 'hex|utf8', hex: false});
         m = getBuffer(m, A.encoding);
