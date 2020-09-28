@@ -43,6 +43,15 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(doubleSha256("30306262", {hex: true}),
                 "824d078ceda8e8eb07cc8181a81f43c8855586c913dd7f54c94f05134e085d5f");
         });
+       it('Class sha256', () => {
+            equal(sha256("test sha256", {hex: true}),
+                "c71d137da140c5afefd7db8e7a255df45c2ac46064e934416dc04020a91f3fd2");
+            let s = new SHA256().update("test sha256").hexdigest();
+            equal(s, "c71d137da140c5afefd7db8e7a255df45c2ac46064e934416dc04020a91f3fd2");
+
+
+        });
+
         it('siphash', () => {
             let v0 = new BN("0706050403020100", 16);
             let v1 = new BN("0F0E0D0C0B0A0908", 16);
@@ -87,6 +96,7 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
         });
 
     });
+
 
     describe("Encoder functions:", function () {
         it('encodeBase58', () => {

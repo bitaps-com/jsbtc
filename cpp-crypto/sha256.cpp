@@ -6,7 +6,7 @@
 #include "sha256.h"
 #include "common.h"
 
-#include <emscripten.h>
+#include <emscripten/bind.h>
 #include <assert.h>
 #include <string.h>
 #include <atomic>
@@ -649,18 +649,55 @@ void SHA256D64(unsigned char* out, const unsigned char* in, size_t blocks)
     }
 }
 
-extern "C" {
+//extern "C" {
 
-    EMSCRIPTEN_KEEPALIVE
+
+//    EMSCRIPTEN_KEEPALIVE
     void single_sha256(const unsigned char* data, size_t len, unsigned char* out_data) {
         CSHA256().Write(data, len).Finalize(out_data);
     }
 
-    EMSCRIPTEN_KEEPALIVE
+//    EMSCRIPTEN_KEEPALIVE
     void double_sha256(const unsigned char* data, size_t len, unsigned char* out_data) {
         unsigned char h[CSHA256::OUTPUT_SIZE];
         CSHA256().Write(data, len).Finalize(h);
         CSHA256().Write(h, CSHA256::OUTPUT_SIZE).Finalize(out_data);
     }
 
+
+
+
+//}
+
+EMSCRIPTEN_BINDINGS() {
+    emscripten::function("_single_sha256", emscripten::optional_override(
+                                           [](int data, size_t l, int out_data) {
+                                           CSHA256().Write((const unsigned char*)data,
+                                           l).Finalize(((unsigned char*)out_data)); }));
+    emscripten::function("_double_sha256", emscripten::optional_override(
+                                           [](int data, size_t len, int out_data) {
+                                           CSHA256().Write((const unsigned char*)data,
+                                                            len).Finalize((unsigned char*)out_data);
+                                           CSHA256().Write((unsigned char*)out_data,
+                                                            CSHA256::OUTPUT_SIZE).Finalize((unsigned char*)out_data);
+                                           }));
+}
+
+
+using namespace emscripten;
+
+
+EMSCRIPTEN_BINDINGS(sha256) {
+   class_<CSHA256>("CSHA256")
+    .constructor<>()
+    .function("Write", optional_override([](CSHA256& this_,
+                                                           int data, size_t len) {
+                 return this_.CSHA256::Write((const unsigned char*)data,
+                                              len);
+                    } ))
+    .function("Finalize",  optional_override([](CSHA256& this_, int out_data) {
+                   return this_.CSHA256::Finalize((unsigned char*)out_data);
+                    } ))
+    .function("Reset", &CSHA256::Reset)
+    ;
 }

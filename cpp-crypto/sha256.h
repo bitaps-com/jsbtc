@@ -38,4 +38,7 @@ std::string SHA256AutoDetect();
  */
 void SHA256D64(unsigned char* output, const unsigned char* input, size_t blocks);
 
+
+void single_sha256(const unsigned char* data, size_t len, unsigned char* out_data);
+
 #endif // BITCOIN_CRYPTO_SHA256_H
