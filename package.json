@@ -1,6 +1,6 @@
 {
   "name": "jsbtc.js",
-  "version": "v1.0.15",
+  "version": "v1.0.17",
   "description": "JavaScript Bitcoin library",
   "main": "dist/jsbtc.js",
   "scripts": {
@@ -23,6 +23,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/bitaps-com/jsbtc.git"
+  },
+  "nyc": {
+  "exclude": "src/btc_crypto.js"
   },
   "keywords": [
     "bitcoin",

@@ -34,6 +34,7 @@ module.exports = function (S) {
             let bP = malloc(m.length);
             CM.HEAPU8.set(m, bP);
             this.ptr.Write(bP, m.length);
+            free(bP);
             return this;
         };
         digest() {
