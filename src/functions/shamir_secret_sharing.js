@@ -86,8 +86,40 @@ module.exports = function (S) {
 
 
     S.__split_secret = (threshold, total,  secret, indexBits=8) => {
-        if (threshold > 255) throw new Error("threshold limit 255");
-        if (total > 255) throw new Error("total limit 255");
+        // SECURITY FIX: Validate threshold and total are valid numbers
+        // Prevents fallback mode that leaks checksum-index hiding mechanism
+        if (threshold === undefined || threshold === null) {
+            throw new Error("threshold must be a number between 1 and 255");
+        }
+        if (total === undefined || total === null) {
+            throw new Error("total must be a number between 1 and 255");
+        }
+        
+        // Convert to numbers if strings (form input)
+        threshold = Number(threshold);
+        total = Number(total);
+        
+        // Check for NaN (invalid input like "$", "", etc.)
+        if (isNaN(threshold) || isNaN(total)) {
+            throw new Error("threshold and total must be valid numbers");
+        }
+        
+        // Check for non-integer values
+        if (!Number.isInteger(threshold) || !Number.isInteger(total)) {
+            throw new Error("threshold and total must be integers");
+        }
+        
+        // Validate ranges
+        if (threshold < 1 || threshold > 255) {
+            throw new Error("threshold must be between 1 and 255");
+        }
+        if (total < 1 || total > 255) {
+            throw new Error("total must be between 1 and 255");
+        }
+        if (threshold > total) {
+            throw new Error("threshold cannot be greater than total");
+        }
+        
         let index_mask = 2**indexBits - 1;
         if (total > index_mask) throw new Error("index bits is to low");
         if (threshold > total) throw new Error("invalid threshold");
