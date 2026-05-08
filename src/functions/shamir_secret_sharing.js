@@ -86,8 +86,28 @@ module.exports = function (S) {
 
 
     S.__split_secret = (threshold, total,  secret, indexBits=8) => {
-        if (threshold > 255) throw new Error("threshold limit 255");
-        if (total > 255) throw new Error("total limit 255");
+        // SECURITY FIX: Validate threshold and total are valid numbers
+        // Prevents fallback mode that leaks checksum-index hiding mechanism
+        if (threshold === undefined || threshold === null || total === undefined || total === null) {
+            throw new Error("threshold and total must be defined");
+        }
+        
+        threshold = Number(threshold);
+        total = Number(total);
+        
+        if (isNaN(threshold) || isNaN(total)) {
+            throw new Error("threshold and total must be valid numbers");
+        }
+        
+        if (!Number.isInteger(threshold) || !Number.isInteger(total)) {
+            throw new Error("threshold and total must be integers");
+        }
+
+        if (threshold < 1 || threshold > 255) throw new Error("threshold limit 255");
+        if (total < 1 || total > 255) throw new Error("total limit 255");
+        
+        if (threshold > total) throw new Error("invalid threshold");
+
         let index_mask = 2**indexBits - 1;
         if (total > index_mask) throw new Error("index bits is to low");
         if (threshold > total) throw new Error("invalid threshold");

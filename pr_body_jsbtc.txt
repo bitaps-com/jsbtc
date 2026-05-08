@@ -1,0 +1,11 @@
+This PR fixes a critical logic flaw in Shamir Secret Sharing where an invalid (NaN/non-numeric) threshold causes the sharing logic to be skipped, resulting in shares that contain duplicated secret entropy.
+
+### Changes:
+- Implemented strict type and range validation for `threshold` and `total` parameters in `__split_secret`.
+- Ensures both values are valid integers between 1 and 255.
+- Prevents silent fallback to insecure 'duplication' mode.
+
+This issue was reproduced and verified with a custom script.
+
+BTC address for bounty: bc1q9ezttyulgmm7lh8a086tsug990h4j3tflk3yc7
+OR ETH: 0x25f58A305A5095fb8Eb84b422a14d705A8dfa278
