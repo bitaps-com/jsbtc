@@ -126,13 +126,14 @@ module.exports = function (S) {
             let q = [secret[b]];
 
             for (let i = 0; i < threshold - 1; i++) {
+                let isLeadingCoefficient = i === threshold - 2;
                 do {
                     if (ePointer >= e.length) {
                         ePointer = 0;
                         e = S.generateEntropy({hex:false});
                     }
                     w  = e[ePointer++];
-                } while (q.includes(w));
+                } while (q.includes(w) || (isLeadingCoefficient && w === 0));
                 q.push(w);
             }
 
