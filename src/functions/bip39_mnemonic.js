@@ -301,7 +301,7 @@ module.exports = function (S) {
             checkSum: A.checkSumVerify, hex: false});
         let bits;
         if (A.embeddedIndex)
-            bits = Math.ceil(Math.log2(total))+1;
+            bits = S.__secret_index_bits(e);
         else
             bits = 8;
 
