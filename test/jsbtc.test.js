@@ -273,6 +273,10 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             s = splitMnemonic(3, 8, m, {embeddedIndex: true});
 
             equal(m, combineMnemonic(s));
+            s = splitMnemonic(3, 15, m, {embeddedIndex: true});
+            equal(m, combineMnemonic(s.slice(0, 3)));
+            expect(() => splitMnemonic(3, 16, m, {embeddedIndex: true}))
+                .to.throw('Maximum 15 shares allowed for 12 mnemonic words');
 
             for (let q = 0; q < 10; q++) {
                 let t =  Math.floor(Math.random() * (10  )) + 2;

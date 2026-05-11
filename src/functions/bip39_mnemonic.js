@@ -297,12 +297,16 @@ module.exports = function (S) {
                  sharesVerify: false,
                  embeddedIndex: false,
                  hex: true});
+        let wordCount = m.trim().split(/\s+/).length;
         let e =  S.mnemonicToEntropy(m, {wordList: A.wordList,
             checkSum: A.checkSumVerify, hex: false});
         let bits;
-        if (A.embeddedIndex)
-            bits = Math.ceil(Math.log2(total))+1;
-        else
+        if (A.embeddedIndex) {
+            let availableBits = e.length * 8 / 32;
+            bits = Math.ceil(Math.log2(total + 1));
+            if (bits > availableBits)
+                throw new Error(`Maximum ${2 ** availableBits - 1} shares allowed for ${wordCount} mnemonic words`);
+        } else
             bits = 8;
 
         let shares = S.__split_secret(threshold, total, e, bits);
