@@ -256,6 +256,14 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(combineMnemonic(shares), m);
 
         });
+        it('split mnemonic with embedded indexes honors checksum capacity', () => {
+            let m = 'stage amused wasp estate tomorrow outer satoshi version verb pudding ghost slender';
+            let shares = splitMnemonic(3, 15, m, {embeddedIndex: true});
+            equal(shares.length, 15);
+            equal(combineMnemonic(shares), m);
+            expect(() => splitMnemonic(3, 16, m, {embeddedIndex: true}))
+                .to.throw('Maximum 15 shares allowed for 12 mnemonic words');
+        });
         it('split mnemonic with embedded indexes extensive test', () => {
 
             let m = entropyToMnemonic(generateEntropy());
