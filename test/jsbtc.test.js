@@ -580,6 +580,28 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
 
             }
         }).timeout(14000);
+
+        it('Secret splitting rejects zero leading coefficients', () => {
+            let originalGenerateEntropy = window.generateEntropy;
+            let entropyChunks = [
+                Buffer.from([1, 2, 3]),
+                Buffer.from([7, 0, 11])
+            ];
+            try {
+                window.generateEntropy = () => entropyChunks.shift() || Buffer.from([11]);
+                let secret = Buffer.from([42]);
+                let shares = __split_secret(3, 3, secret);
+                let keys = Object.keys(shares);
+                let twoShares = {};
+                twoShares[keys[0]] = shares[keys[0]];
+                twoShares[keys[1]] = shares[keys[1]];
+
+                assert.notEqual(__restore_secret(twoShares)[0], secret[0]);
+                equal(__restore_secret(shares)[0], secret[0]);
+            } finally {
+                window.generateEntropy = originalGenerateEntropy;
+            }
+        });
     });
 
     describe("Private/Public key functions:", function () {
@@ -2926,4 +2948,3 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
 
 
 });
-
