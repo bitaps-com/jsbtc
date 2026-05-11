@@ -85,11 +85,24 @@ module.exports = function (S) {
     };
 
 
-    S.__split_secret = (threshold, total,  secret, indexBits=8) => {
+    S.__secret_index_bits = (secret) => {
+        const checksumBitsByEntropyLength = {
+            16: 4,
+            20: 5,
+            24: 6,
+            28: 7,
+            32: 8,
+        };
+
+        return checksumBitsByEntropyLength[secret.length] || 8;
+    };
+
+    S.__split_secret = (threshold, total,  secret, indexBits=null) => {
         if (threshold > 255) throw new Error("threshold limit 255");
         if (total > 255) throw new Error("total limit 255");
+        if (indexBits === null) indexBits = S.__secret_index_bits(secret);
         let index_mask = 2**indexBits - 1;
-        if (total > index_mask) throw new Error("index bits is to low");
+        if (total > index_mask) throw new Error("index bits is too low");
         if (threshold > total) throw new Error("invalid threshold");
         let shares = {};
         let sharesIndexes = [];

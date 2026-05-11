@@ -256,6 +256,21 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(combineMnemonic(shares), m);
 
         });
+        it('split mnemonic with embedded indexes uses checksum-sized share indexes', () => {
+            let m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+            let shares = splitMnemonic(3, 15, m, {embeddedIndex: true});
+
+            equal(shares.length, 15);
+
+            for (let share of shares) {
+                let index = getMnemonicCheckSumData(share);
+                equal(index > 0, true);
+                equal(index <= 15, true);
+            }
+
+            equal(combineMnemonic(shares.slice(0, 3)), m);
+            expect(() => splitMnemonic(3, 16, m, {embeddedIndex: true})).to.throw('index bits is too low');
+        });
         it('split mnemonic with embedded indexes extensive test', () => {
 
             let m = entropyToMnemonic(generateEntropy());
