@@ -86,6 +86,7 @@ module.exports = function (S) {
 
 
     S.__split_secret = (threshold, total,  secret, indexBits=8) => {
+        if (threshold < 2) throw new Error("Minimum 2 shares required");
         if (threshold > 255) throw new Error("threshold limit 255");
         if (total > 255) throw new Error("total limit 255");
         let index_mask = 2**indexBits - 1;

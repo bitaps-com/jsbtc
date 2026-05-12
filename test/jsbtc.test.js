@@ -266,8 +266,8 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             s = splitMnemonic(2, 255, m, {embeddedIndex: true});
             equal(m, combineMnemonic(s));
 
-            s = splitMnemonic(1, 255, m, {embeddedIndex: true});
-            equal(m, combineMnemonic(s));
+            expect(() => splitMnemonic(1, 255, m, {embeddedIndex: true}))
+                .to.throw("Minimum 2 shares required");
 
             m = "stage amused wasp estate tomorrow outer satoshi version verb pudding ghost slender";
             s = splitMnemonic(3, 8, m, {embeddedIndex: true});
@@ -529,6 +529,9 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
         });
 
         it('Secret splitting', () => {
+            expect(() => __split_secret(1, 3, Buffer.from("w", 'utf8')))
+                .to.throw("Minimum 2 shares required");
+
             let secret = Buffer.from("w", 'utf8');
             for (let i = 0 ; i < 1000; i++) {
                 let shares = __split_secret(5, 5, secret);
