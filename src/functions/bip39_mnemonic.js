@@ -299,11 +299,24 @@ module.exports = function (S) {
                  hex: true});
         let e =  S.mnemonicToEntropy(m, {wordList: A.wordList,
             checkSum: A.checkSumVerify, hex: false});
-        let bits;
-        if (A.embeddedIndex)
-            bits = Math.ceil(Math.log2(total))+1;
-        else
-            bits = 8;
+    let bits;
+    if (A.embeddedIndex) {
+        // Fix for issue #55: Ensure indexBits matches the mnemonic's checksum capacity
+        // 12-word (16 bytes entropy) = 4 bits CS
+        // 15-word (20 bytes entropy) = 5 bits CS
+        // 18-word (24 bytes entropy) = 6 bits CS
+        // 21-word (28 bytes entropy) = 7 bits CS
+        // 24-word (32 bytes entropy) = 8 bits CS
+        const csMap = {16: 4, 20: 5, 24: 6, 28: 7, 32: 8};
+        bits = csMap[e.length] || 8;
+        
+        // Also ensure total fits in bits
+        if (total >= (1 << bits)) {
+             throw new Error(`Total shares (${total}) exceeds capacity of ${bits} bits for this mnemonic length`);
+        }
+    }
+    else
+        bits = 8;
 
         let shares = S.__split_secret(threshold, total, e, bits);
 
