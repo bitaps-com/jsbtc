@@ -143,7 +143,14 @@ module.exports = function (S) {
         return shares;
     };
 
-    S.__restore_secret = (shares) => {
+    S.__restore_secret = (shares, threshold) => {
+      if (threshold === undefined) {
+        throw new Error("Threshold parameter is required. Call __restore_secret(shares, threshold)");
+      }
+      const shareCount = Object.keys(shares).length;
+      if (shareCount < threshold) {
+        throw new Error(`Need at least ${threshold} shares to recover the secret, but only ${shareCount} provided`);
+      }
       let secret = BF([]);
       let shareLength = null;
       let q = [];
