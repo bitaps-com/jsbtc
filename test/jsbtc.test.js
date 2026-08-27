@@ -580,6 +580,41 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
 
             }
         }).timeout(14000);
+
+        it('Polynomial evaluation is position-based (repeated coefficients)', () => {
+            // Regression for the indexOf bug: __shamirFn must use the
+            // coefficient position as exponent, so repeated coefficient
+            // values are evaluated correctly.
+            const explicitEval = (x, q) => {
+                let r = 0;
+                for (let i = 0; i < q.length; i++)
+                    r = __GF256_add(r, __GF256_mul(q[i], __GF256_pow(x, i)));
+                return r;
+            };
+            // q with a repeated coefficient value
+            const q = [7, 9, 9, 3, 9];
+            for (let x = 1; x < 256; x += 13)
+                equal(__shamirFn(x, q), explicitEval(x, q));
+            // random repeats
+            for (let trial = 0; trial < 50; trial++) {
+                const rq = [];
+                for (let i = 0; i < 6; i++) rq.push(Math.floor(Math.random() * 256));
+                for (let x = 1; x < 256; x += 97)
+                    equal(__shamirFn(x, rq), explicitEval(x, rq));
+            }
+        });
+
+        it('Uniform coefficient sampling: high thresholds round-trip', () => {
+            // The old rejection filter forced distinct coefficients (entropy
+            // leak, breakdown at t >= 30). Coefficients are now sampled
+            // uniformly i.i.d.; verify round-trips up to threshold 100.
+            let secret = Buffer.from("high threshold check 0123456789abcdef", 'utf8');
+            for (let i = 30; i <= 100; i += 5) {
+                let shares = __split_secret(i, i, secret);
+                let r = __restore_secret(shares);
+                equal(r.toString('utf8'), secret.toString('utf8'));
+            }
+        });
     });
 
     describe("Private/Public key functions:", function () {

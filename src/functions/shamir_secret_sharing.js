@@ -54,8 +54,13 @@ module.exports = function (S) {
     };
 
     S.__shamirFn = (x, q) => {
+        // Evaluate the polynomial q[0] + q[1]*x + ... + q[n-1]*x^(n-1) with
+        // Horner's method, using the coefficient position as the exponent.
+        // (indexOf-based evaluation returned the first occurrence of a value,
+        // corrupting the result whenever coefficients repeat.)
         let r = 0;
-        for (let a of q) r = S.__GF256_add(r, S.__GF256_mul(a, S.__GF256_pow(x, q.indexOf(a))));
+        for (let i = q.length - 1; i >= 0; i--)
+            r = S.__GF256_add(S.__GF256_mul(r, x), q[i]);
         return r;
     };
 
@@ -121,19 +126,20 @@ module.exports = function (S) {
         e = S.generateEntropy({hex:false});
         ePointer = 0;
 
-        let w;
         for (let b = 0; b < secret.length; b++) {
             let q = [secret[b]];
 
+            // Sample coefficients uniformly at random from GF(256) (i.i.d.).
+            // No rejection filter: forcing distinct coefficients (and distinct
+            // from the secret byte) violates Shamir's perfect-secrecy
+            // guarantee. Position-based evaluation in __shamirFn handles
+            // repeated values correctly.
             for (let i = 0; i < threshold - 1; i++) {
-                do {
-                    if (ePointer >= e.length) {
-                        ePointer = 0;
-                        e = S.generateEntropy({hex:false});
-                    }
-                    w  = e[ePointer++];
-                } while (q.includes(w));
-                q.push(w);
+                if (ePointer >= e.length) {
+                    ePointer = 0;
+                    e = S.generateEntropy({hex:false});
+                }
+                q.push(e[ePointer++]);
             }
 
             for (let i of sharesIndexes)
