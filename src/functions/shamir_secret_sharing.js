@@ -143,16 +143,29 @@ module.exports = function (S) {
         return shares;
     };
 
-    S.__restore_secret = (shares) => {
+    S.__restore_secret = (shares, threshold) => {
       let secret = BF([]);
       let shareLength = null;
       let q = [];
 
+      /* Count the number of shares provided. */
+      let shareCount = 0;
       for (let i in shares) {
           i = parseInt(i);
           if ((i < 1) || (i > 255)) throw new Error("Invalid share index " + i);
           if (shareLength === null) shareLength = shares[i].length;
           if ((shareLength !== shares[i].length) || (shareLength === 0))  throw new Error("Invalid shares");
+          shareCount++;
+      }
+
+      /*
+       * Lagrange interpolation with fewer than `threshold` shares silently
+       * produces a wrong secret (it fits a lower-degree polynomial).  Reject
+       * early so the caller never receives an incorrect recovery.
+       */
+      if (threshold !== undefined && threshold !== null) {
+          if (shareCount < threshold)
+              throw new Error("Not enough shares: need at least " + threshold + ", got " + shareCount);
       }
 
       for (let i = 0; i < shareLength; i++) {
