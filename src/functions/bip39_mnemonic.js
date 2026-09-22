@@ -319,7 +319,7 @@ module.exports = function (S) {
             for (let c of combinations) {
                 let d = {};
                 for (let q of c) d[q[0]] = q[1];
-                let s = S.__restore_secret(d);
+                let s = S.__restore_secret(d, threshold);
                 if (!s.equals(e))  {
                     throw new Error("split secret failed");
                 }
@@ -363,7 +363,7 @@ module.exports = function (S) {
                     checkSum: A.checkSum, hex: false});
         }
 
-        return S.entropyToMnemonic(S.__restore_secret(s), A);
+        return S.entropyToMnemonic(S.__restore_secret(s, A.threshold), A);
     }
 
 };
