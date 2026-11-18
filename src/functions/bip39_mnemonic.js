@@ -59,7 +59,7 @@ module.exports = function (S) {
 
     S.igamc = (a, x) => {
         if (x <= 0 || a <= 0) return 1.0;
-        if (x < 1.0 || x < a) return 1.0 - igam(a, x);
+        if (x < 1.0 || x < a) return 1.0 - S.igam(a, x);
         let big = 4.503599627370496e15;
         let biginv = 2.22044604925031308085e-16;
         let ans, ax, c, yc, r, t, y, z;

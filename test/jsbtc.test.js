@@ -138,6 +138,30 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(igamc(8.11261940, 4.05857957) - 0.95010562492501993148 < q, true);
             equal(igamc(1.34835811, 6.64708856) - 0.00295250273836756942 < q, true);
         });
+        it('igamc resolves S.igam in isolated scope without global reference error (#78)', async function () {
+            const isolatedScope = {};
+            await jsbtc.__asyncInit(isolatedScope);
+            const hadGlobalIgam = Object.prototype.hasOwnProperty.call(global, 'igam');
+            const savedGlobalIgam = global.igam;
+            delete global.igam;
+            try {
+                // Testing x < 1.0 branch
+                const res1 = isolatedScope.igamc(1.5, 0.5);
+                equal(Math.abs((isolatedScope.igam(1.5, 0.5) + res1) - 1.0) < 1e-12, true);
+
+                // Testing x < a branch
+                const res2 = isolatedScope.igamc(3.0, 2.0);
+                equal(Math.abs((isolatedScope.igam(3.0, 2.0) + res2) - 1.0) < 1e-12, true);
+
+                // Testing continued fraction branch (x >= 1.0 && x >= a)
+                const res3 = isolatedScope.igamc(1.5, 2.0);
+                equal(Math.abs((isolatedScope.igam(1.5, 2.0) + res3) - 1.0) < 1e-12, true);
+            } finally {
+                if (hadGlobalIgam) {
+                    global.igam = savedGlobalIgam;
+                }
+            }
+        });
         it('Entropy <-> mnemonic', () => {
             let m = 'young crime force door joy subject situate hen pen sweet brisk snake nephew sauce ' +
                    'point skate life truly hockey scout assault lab impulse boss';
