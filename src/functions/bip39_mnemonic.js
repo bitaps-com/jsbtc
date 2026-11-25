@@ -222,14 +222,16 @@ module.exports = function (S) {
 
     S.mnemonicToEntropy =  (m, A = {}) => {
         ARGS(A, {wordList: S.BIP39_WORDLIST, checkSum: false, hex: true});
-        m = m.trim().split(/\s+/);
-        if (!(S.isMnemonicValid(m, A))) throw new TypeError('invalid mnemonic words');
+        let words = m.trim().split(/\s+/);
+        if (!(S.isMnemonicValid(words, A))) throw new TypeError('invalid mnemonic words');
         let e = new BN(0);
-        for (let w of m)  e = e.shln(11).or(new BN(A.wordList.indexOf(w)));
-        let bitSize = m.length * 11;
+        for (let w of words)  e = e.shln(11).or(new BN(A.wordList.indexOf(w)));
+        let bitSize = words.length * 11;
         let checkSumBitLen = bitSize % 32;
         e = e.shrn(checkSumBitLen);
         e = e.toArrayLike(S.Buffer, 'be', Math.ceil((bitSize- checkSumBitLen)/8));
+        if (A.checkSum && !(S.isMnemonicCheckSumValid(m, {wordList: A.wordList})))
+            throw new TypeError('invalid mnemonic checksum');
         return (A.hex) ? e.hex() : e;
     };
 
