@@ -200,6 +200,21 @@ describe(`${(browser) ? 'Browser' : 'Node'} test jsbtc library`, function () {
             equal(isMnemonicCheckSumValid(m), false);
         });
 
+        it('mnemonicToEntropy honors checkSum', () => {
+            let valid = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
+            let invalid = 'gift gift street machine glue spring spin energy assist stereo liar ramp';
+
+            equal(mnemonicToEntropy(valid, {checkSum: true}), mnemonicToEntropy(valid));
+            assert.throws(() => mnemonicToEntropy(invalid, {checkSum: true}),
+                /invalid mnemonic checksum/);
+            equal(mnemonicToEntropy(invalid), mnemonicToEntropy(invalid, {checkSum: false}));
+
+            assert.throws(() => splitMnemonic(3, 5, invalid, {checkSumVerify: true}),
+                /invalid mnemonic checksum/);
+            assert.throws(() => combineMnemonic({1: invalid, 2: invalid, 3: invalid},
+                {checkSum: true}), /invalid mnemonic checksum/);
+        });
+
         it('isMnemonicValid', () => {
             let m = 'gift unfold street machine glue spring spin energy assist stereo liar ramp';
             equal(isMnemonicValid(m), true);
